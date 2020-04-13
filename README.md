@@ -15,6 +15,8 @@ successfully sign in. Admins can also edit these meetings at any time and view t
 In the end, not only can teachers quickly sign into meetings with the peace of mind that their digital transactions are recorded 
 online, but admins can also monitor meeting attendance and control meeting parameters with ease.
 
+[Devpost Link (with screenshots)](https://devpost.com/software/thunderbird-meeting-tracker)
+
 ## How I built it
 I used Android Studio to code my project in Java. For online database CRUD operations, I utilized the Back4App backend framework
 based on the Parse platform. In order to utilize the Google Maps SDK API (and in the future, Google Places API) for both geolocation
