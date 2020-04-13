@@ -1,0 +1,79 @@
+<resources>
+    <string name="app_name">Thunderbird Meeting Tracker</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Log in</string>
+    <string name="logoDescription">Picture of JISD Wagner Thunderbirds Logo</string>
+    <string name="signUp">Sign Up</string>
+    <string name="confirmPassword">Confirm Password</string>
+    <string name="createAccount">Create Account</string>
+    <string name="name">Full Name</string>
+    <string name="adminOption">I am an administrator</string>
+    <string name="enterAdminPass">Enter admin password</string>
+    <string name="profile">My Profile</string>
+    <string name="defaultTextBox">Loading...</string>
+    <string name="nextMeetingHeader">Next Meeting</string>
+    <string name="logOut">Log Out</string>
+    <string name="adminOptionsHeader">Administrator Options</string>
+    <string name="welcomeMessage">NOTICE</string>
+    <string name="permissionsMessage">The main functionalities of this app include accessing the device\'s location in order to confirm meeting presence and register new meeting locations. Without these permissions, much of the application\'s functionality is compromised. Therefore, it is necessary to accept these permissions as they appear below if you have not already done so. Thank you for your understanding!</string>
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+    <string name="back4app_app_id">VtX8L5hmrAQymFcL8VDniUYHRIeTxQrZKRfPCumr</string>
+    <string name="back4app_client_key">pG1T3hInaJLS4QLKN9GGXiGTHTEoS3UxlnnzbTuf</string>
+    <string name="departmentLabel">Department:</string>
+    <string name="scheduleMeeting">Schedule Meeting</string>
+    <string name="editMeeting">Edit Existing Meeting</string>
+    <string name="scheduleLabelString">Meeting Scheduler</string>
+    <string name="chooseDateString">Choose a Date</string>
+    <string name="chooseRemoteString">Is this Meeting Remote?</string>
+    <string name="chooseLocationString">Choose a Location</string>
+    <string name="useDeviceLocation">Current Device Location</string>
+    <string name="submitMessage">Submit</string>
+    <string name="changeTimeString">Change time</string>
+    <string name="customLocationLabel">Custom Location</string>
+    <string name="chooseDescriptionString">Meeting Description</string>
+    <string name="enterDescriptionText">Enter meeting description here</string>
+    <string name="chooseAudienceString">Who is this Meeting for?</string>
+    <string name="noMeetingsScheduledMessage">Currently, there are no meetings scheduled.</string>
+    <string name="signInToMeetingMessage">Sign in to Meeting</string>
+    <string name="meetingSignInMessage">Choose a Meeting to Sign Into</string>
+    <string name="locationRemoteMessage">Location: Remote</string>
+    <string name="viewAllUsers">View All Users</string>
+    <string name="viewMeetingsMessage">View Meetings</string>
+    <string name="useExistingLocationMessage">Use existing (saved) location</string>
+    <string name="editMeetingsMessage">Edit Meetings</string>
+    <string name="viewUsersMessage">View All Users</string>
+    <string name="userHasNotAttendedAnyMeetingsMessage">This user has not attended any meetings thus far.</string>
+    <string name="noMeetingsFoundMessage">There are currently no scheduled meetings.</string>
+    <string name="noUsersFoundMessage">There are currently no users registered in the system.</string>
+
+    <string-array name="departmentsArray">
+        <item>Computer Science</item>
+        <item>Math</item>
+        <item>Science</item>
+        <item>English</item>
+        <item>History/Social Studies</item>
+        <item>Music</item>
+        <item>Art</item>
+        <item>Athletics</item>
+        <item>CTE</item>
+        <item>Administrator</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="audienceArray">
+        <item>General</item>
+        <item>Computer Science</item>
+        <item>Math</item>
+        <item>Science</item>
+        <item>English</item>
+        <item>History/Social Studies</item>
+        <item>Music</item>
+        <item>Art</item>
+        <item>Athletics</item>
+        <item>CTE</item>
+        <item>Administrator</item>
+        <item>Other</item>
+    </string-array>
+
+</resources>
