@@ -46,6 +46,9 @@
     <string name="userHasNotAttendedAnyMeetingsMessage">This user has not attended any meetings thus far.</string>
     <string name="noMeetingsFoundMessage">There are currently no scheduled meetings.</string>
     <string name="noUsersFoundMessage">There are currently no users registered in the system.</string>
+    <string name="removeMeeting">Delete Meeting</string>
+    <string name="delPreviousMeetingsLabel">Delete all previous meetings in memory</string>
+    <string name="delAllMeetingsLabel">Delete all meetings in memory</string>
 
     <string-array name="departmentsArray">
         <item>Computer Science</item>

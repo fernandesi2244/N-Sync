@@ -7,9 +7,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -60,21 +63,26 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     public void hideAdminContent() {
-        TextView adminLabel = (TextView) (findViewById(R.id.adminOptionsLabel));
-        Button scheduleButton = (Button) (findViewById(R.id.scheduleMeetingButton));
-        Button editButton = (Button) (findViewById(R.id.editMeetingButton));
-        Button viewUsersButton = (Button)(findViewById(R.id.viewUsersButton));
+        TextView adminLabel = findViewById(R.id.adminOptionsLabel);
+        Button scheduleButton = findViewById(R.id.scheduleMeetingButton);
+        Button editButton = findViewById(R.id.editMeetingButton);
+        Button viewUsersButton = findViewById(R.id.viewUsersButton);
+        Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
+        Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
 
         adminLabel.setVisibility(View.GONE);
         scheduleButton.setVisibility(View.GONE);
         editButton.setVisibility(View.GONE);
         viewUsersButton.setVisibility(View.GONE);
+        delPrevMeetingsButton.setVisibility(View.GONE);
+        delAllMeetingsButton.setVisibility(View.GONE);
+
     }
 
 
     public void populateUserInfo() {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        if(currentUser==null) {
+        if (currentUser == null) {
             Toast.makeText(getApplicationContext(), "The app may have had connection issues. Please try starting the app again!", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -84,7 +92,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         String department = currentUser.getString("department");
         boolean isAdmin = currentUser.getBoolean("isAdmin");
 
-        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
+        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
         TextView nameTextView = (TextView) (findViewById(R.id.displayName));
         nameTextView.setText("Name: " + name);
@@ -126,7 +134,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
             ParseObject nextMeeting = meetings.get(0);
 
-            meetingDescription.setText("Description: "+nextMeeting.getString("meetingDescription"));
+            meetingDescription.setText("Description: " + nextMeeting.getString("meetingDescription"));
 
             Date nextMeetingDate = nextMeeting.getDate("meetingDate");
             DateFormat df = new SimpleDateFormat("M/dd/yy @ h:mm a");
@@ -134,7 +142,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
             boolean meetingIsRemote = nextMeeting.getBoolean("isRemote");
 
-            if(!meetingIsRemote) {
+            if (!meetingIsRemote) {
                 nextMeetingLocation = nextMeeting.getParseGeoPoint("meetingLocation");
                 String loc = String.format("Location: (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
                 meetingLocation.setText(loc);
@@ -142,6 +150,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                 setMapLocation();
                 LinearLayout mapLayout = findViewById(R.id.mapLinLayout);
                 mapLayout.setVisibility(View.VISIBLE);
+                mapLayout.startAnimation(fadeIn);
             } else {
                 meetingLocation.setText(R.string.locationRemoteMessage);
                 setMapLocation(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
@@ -166,12 +175,14 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     public void displayAdminOptions() {
-        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_three_seconds);
+        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
-        TextView adminLabel = (TextView) (findViewById(R.id.adminOptionsLabel));
-        Button scheduleButton = (Button) (findViewById(R.id.scheduleMeetingButton));
-        Button editButton = (Button) (findViewById(R.id.editMeetingButton));
-        Button viewUsersButton = (Button) (findViewById(R.id.viewUsersButton));
+        TextView adminLabel = findViewById(R.id.adminOptionsLabel);
+        Button scheduleButton = findViewById(R.id.scheduleMeetingButton);
+        Button editButton = findViewById(R.id.editMeetingButton);
+        Button viewUsersButton = findViewById(R.id.viewUsersButton);
+        Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
+        Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
 
         adminLabel.setVisibility(View.VISIBLE);
         adminLabel.startAnimation(fadeIn);
@@ -184,6 +195,12 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         viewUsersButton.setVisibility(View.VISIBLE);
         viewUsersButton.startAnimation(fadeIn);
+
+        delPrevMeetingsButton.setVisibility(View.VISIBLE);
+        delPrevMeetingsButton.startAnimation(fadeIn);
+
+        delAllMeetingsButton.setVisibility(View.VISIBLE);
+        delAllMeetingsButton.startAnimation(fadeIn);
     }
 
     private void initMap() {
@@ -193,7 +210,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void setMapLocation() {
-        if(nextMeetingLocation!=null) {
+        if (nextMeetingLocation != null) {
             LatLng loc = new LatLng(nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
             locMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, DEFAULT_MAP_ZOOM));
             locMap.addMarker(new MarkerOptions().position(loc).title("Meeting Location"));
@@ -219,7 +236,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         startActivity(intent);
     }
 
-    public void scheduleMeeting(View view)  {
+    public void scheduleMeeting(View view) {
         Intent goToScheduler = new Intent(this, ScheduleMeetingActivity.class);
         goToScheduler.putExtra("meetingID", "NONE");
         startActivity(goToScheduler);
@@ -241,4 +258,76 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         startActivity(goToUserList);
     }
 
+    public void delAllPreviousMeetings(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+        builder.setCancelable(true);
+        builder.setTitle("WARNING");
+        builder.setMessage("Are you sure you want to delete all the previous meetings in memory?");
+        builder.setPositiveButton("Confirm",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ParseQuery<ParseObject> getAllPreviousMeetings = ParseQuery.getQuery("Meeting");
+                        getAllPreviousMeetings.whereLessThan("meetingDate", new Date());
+                        try {
+                            List<ParseObject> meetings = getAllPreviousMeetings.find();
+                            ParseUser currentUser = ParseUser.getCurrentUser();
+                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has attempted to delete all previous meetings from memory.", "HIGH");
+                            for (ParseObject current : meetings) {
+                                current.deleteEventually();
+                            }
+                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all previous meetings from memory.", "HIGH");
+                            Toast.makeText(getApplicationContext(), "Successfully queued all previous meetings for deletion from memory.", Toast.LENGTH_LONG).show();
+                            initMap();  //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
+                        } catch (ParseException e) {
+                            Toast.makeText(getApplicationContext(), "Could not retrieve meetings at this moment. Please try again later!", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(getApplicationContext(), "Delete operation successfully avoided.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    public void delAllMeetings(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+        builder.setCancelable(true);
+        builder.setTitle("WARNING");
+        builder.setMessage("Are you sure you want to delete ALL meetings in memory?");
+        builder.setPositiveButton("Confirm",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ParseQuery<ParseObject> getAllMeetings = ParseQuery.getQuery("Meeting");
+                        try {
+                            List<ParseObject> meetings = getAllMeetings.find();
+                            ParseUser currentUser = ParseUser.getCurrentUser();
+                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has attempted to delete all meetings from memory.", "HIGH");
+                            for (ParseObject current : meetings) {
+                                current.deleteEventually();
+                            }
+                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all meetings from memory.", "HIGH");
+                            Toast.makeText(getApplicationContext(), "Successfully queued all meetings for deletion from memory.", Toast.LENGTH_LONG).show();
+                            initMap();  //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
+                        } catch (ParseException e) {
+                            Toast.makeText(getApplicationContext(), "Could not retrieve meetings at this moment. Please try again later!", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(getApplicationContext(), "Delete operation successfully avoided.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
 }

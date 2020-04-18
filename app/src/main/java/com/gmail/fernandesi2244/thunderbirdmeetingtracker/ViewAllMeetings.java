@@ -103,10 +103,10 @@ public class ViewAllMeetings extends AppCompatActivity {
             meetingsLayout.addView(nextButton);
         }
 
-        if(meetings.size()==0) {
+        if (meetings.size() == 0) {
             TextView noMeetingsView = new TextView(this);
             noMeetingsView.setGravity(Gravity.CENTER);
-            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP,18);
+            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
             noMeetingsView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             noMeetingsView.setText(R.string.noMeetingsFoundMessage);
             noMeetingsView.setId(View.generateViewId());
@@ -126,7 +126,7 @@ public class ViewAllMeetings extends AppCompatActivity {
         findUser.whereEqualTo("objectId", userId);
         try {
             users = findUser.find();
-            if(users==null||users.size()!=1)
+            if (users == null || users.size() != 1)
                 throw new Exception();
         } catch (ParseException e) {
             Toast.makeText(getApplicationContext(), "Error: Could not retrieve user's meetings. Please try again later.", Toast.LENGTH_LONG).show();
@@ -144,7 +144,7 @@ public class ViewAllMeetings extends AppCompatActivity {
         Collections.sort(userMeetings, new Comparator<ParseObject>() {
             @Override
             public int compare(ParseObject first, ParseObject second) {
-                if(first.getDate("meetingDate").before(second.getDate("meetingDate")))
+                if (first.getDate("meetingDate").before(second.getDate("meetingDate")))
                     return 1;
                 return -1;
             }
@@ -153,7 +153,7 @@ public class ViewAllMeetings extends AppCompatActivity {
         for (ParseObject current : userMeetings) {
             TextView nextView = new TextView(this);
             nextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            nextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,18);
+            nextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
             String meetingDescription = current.getString("meetingDescription");
             Date nextMeetingDate = current.getDate("meetingDate");
@@ -167,10 +167,10 @@ public class ViewAllMeetings extends AppCompatActivity {
 
         }
 
-        if(userMeetings.size()==0) {
+        if (userMeetings.size() == 0) {
             TextView noMeetingsView = new TextView(this);
             noMeetingsView.setGravity(Gravity.CENTER);
-            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP,18);
+            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
             noMeetingsView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             noMeetingsView.setText(R.string.userHasNotAttendedAnyMeetingsMessage);
             noMeetingsView.setId(View.generateViewId());
@@ -181,26 +181,33 @@ public class ViewAllMeetings extends AppCompatActivity {
 
     private List<ParseObject> transform(List<Object> pointers) {
         List<ParseObject> meetings = new ArrayList<>();
-        for(Object current: pointers) {
-            ParseObject obj = (ParseObject)current;
+        for (Object current : pointers) {
+            ParseObject obj = (ParseObject) current;
             String id = obj.getObjectId();
 
             ParseQuery<ParseObject> getMeeting = ParseQuery.getQuery("Meeting");
             getMeeting.whereEqualTo("objectId", id);
             try {
                 List<ParseObject> returnedResults = getMeeting.find();
-                if(returnedResults==null||returnedResults.size()!=1) {
-                    throw new Exception();
+                if (returnedResults == null) {
+                    throw new Exception("null");
+                } else if (returnedResults.size() != 1) {
+                    throw new Exception("size");
                 }
                 meetings.add(returnedResults.get(0));
-            } catch(ParseException e){
+            } catch (ParseException e) {
                 Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meetings. Please try again later!", Toast.LENGTH_LONG).show();
                 goBackToProfile();
                 return new ArrayList<>();
-            } catch(Exception e2) {
-                Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meetings. Please try again later!", Toast.LENGTH_LONG).show();
-                goBackToProfile();
-                return new ArrayList<>();
+            } catch (Exception e2) {
+                if (e2.getMessage().equals("size")) {
+                    //Do nothing (Most likely, the meeting could not be found, indicating that it was probably deleted by an admin)
+                    //Therefore, we should keep iterating over the meetings to see if there are any meetings that haven't been deleted.
+                } else {
+                    Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meetings. Please try again later!", Toast.LENGTH_LONG).show();
+                    goBackToProfile();
+                    return new ArrayList<>();
+                }
             }
         }
         return meetings;

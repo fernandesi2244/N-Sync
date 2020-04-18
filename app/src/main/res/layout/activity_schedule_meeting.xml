@@ -142,7 +142,7 @@
                 android:id="@+id/locationRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <RadioButton
                     android:id="@+id/currentLocationRadioButton"
@@ -160,11 +160,22 @@
                     android:text="@string/customLocationLabel" />
             </RadioGroup>
 
+                <Button
+                    android:id="@+id/deleteMeetingButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:background="@color/colorPrimary"
+                    android:onClick="deleteMeeting"
+                    android:text="@string/removeMeeting"
+                    android:textSize="14sp" />
+
             <Button
                 android:id="@+id/submitButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
+                android:background="@color/lovelyGreen"
                 android:onClick="submitMeeting"
                 android:text="@string/submitMessage"
                 android:textSize="24sp" />

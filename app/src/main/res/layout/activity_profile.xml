@@ -172,6 +172,22 @@
                     android:onClick="viewAllUsers"
                     android:text="@string/viewAllUsers" />
 
+                <Button
+                    android:id="@+id/deleteAllPreviousMeetingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="delAllPreviousMeetings"
+                    android:text="@string/delPreviousMeetingsLabel"
+                    android:textColor="@color/colorPrimary"/>
+
+                <Button
+                    android:id="@+id/deleteAllMeetingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="delAllMeetings"
+                    android:text="@string/delAllMeetingsLabel"
+                    android:textColor="@color/colorPrimary"/>
+
             </LinearLayout>
 
             <Button

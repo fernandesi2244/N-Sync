@@ -18,6 +18,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -35,10 +36,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.parse.DeleteCallback;
+import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.text.DateFormat;
@@ -89,9 +93,11 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         switch (meetingID) {
             case "NONE":
                 usingDeviceLocation = true;
+                showButton(false);
                 break;
             default:
                 usingDeviceLocation = false;
+                showButton(true);
                 setUpWithMeetingID();
         }
     }
@@ -116,6 +122,15 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
     public void onNothingSelected(AdapterView<?> parent) {
         // Another interface callback
+    }
+
+    private void showButton(boolean show) {
+        Button delMeetingBtn = findViewById(R.id.deleteMeetingButton);
+        if (show) {
+            delMeetingBtn.setVisibility(View.VISIBLE);
+        } else {
+            delMeetingBtn.setVisibility(View.GONE);
+        }
     }
 
     private void initDateAndTime() {
@@ -226,7 +241,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                     if (task.isSuccessful()) {
                         currentLoc = (Location) task.getResult();
                     }
-                    if(meetingID==null||meetingID.equals("NONE"))
+                    if (meetingID == null || meetingID.equals("NONE"))
                         resumeSubmitRequestWithDeviceLocation();
                     else
                         resumeUpdateRequestWithDeviceLocation();
@@ -291,6 +306,9 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             public void done(ParseException e) {
                 if (e == null) {
                     // Success
+                    ParseUser currentUser = ParseUser.getCurrentUser();
+                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has scheduled a meeting.", "MEDIUM");
+                    Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
                     // Error
@@ -325,6 +343,9 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             public void done(ParseException e) {
                 if (e == null) {
                     // Success
+                    ParseUser currentUser = ParseUser.getCurrentUser();
+                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has scheduled a meeting.", "MEDIUM");
+                    Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
                     // Error
@@ -390,6 +411,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             public void done(ParseException e) {
                 if (e == null) {
                     // Success
+                    ParseUser currentUser = ParseUser.getCurrentUser();
+                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
                     Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
@@ -449,6 +472,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             public void done(ParseException e) {
                 if (e == null) {
                     // Success
+                    ParseUser currentUser = ParseUser.getCurrentUser();
+                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
                     Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
@@ -542,5 +567,37 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         } else {
             usingDeviceLocation = true;
         }
+    }
+
+    public void deleteMeeting(View view) {
+        if (meetingID == null) {
+            Toast.makeText(getApplicationContext(), "Something went wrong... Please try again later!", Toast.LENGTH_LONG).show();
+            goBackToProfile();
+            return;
+        }
+
+        ParseQuery<ParseObject> getMeeting = ParseQuery.getQuery("Meeting");
+        getMeeting.whereEqualTo("objectId", meetingID);
+        getMeeting.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(final List<ParseObject> object, ParseException e) {
+                if (e == null) {
+                    if (object.size() == 0) {
+                        Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting to delete. Please try again later!", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    try {
+                        object.get(0).delete();
+                        Toast.makeText(getApplicationContext(), "The meeting was successfully deleted!", Toast.LENGTH_LONG).show();
+                        goBackToProfile();
+                    } catch (ParseException e2) {
+                        Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting to delete. Please try again later!", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    // Something is wrong
+                    Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting to delete. Please try again later!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 }
