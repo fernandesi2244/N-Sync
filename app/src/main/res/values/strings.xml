@@ -49,6 +49,9 @@
     <string name="removeMeeting">Delete Meeting</string>
     <string name="delPreviousMeetingsLabel">Delete all previous meetings in memory</string>
     <string name="delAllMeetingsLabel">Delete all meetings in memory</string>
+    <string name="viewPastMeetingsMessage">View past meetings</string>
+    <string name="viewMeetingAttendanceMessage">View meeting attendance</string>
+    <string name="noUsersFoundForMeetingMessage">There are currently no users who have signed into this meeting.</string>
 
     <string-array name="departmentsArray">
         <item>Computer Science</item>

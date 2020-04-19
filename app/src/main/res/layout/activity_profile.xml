@@ -114,7 +114,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/signInToMeetingLayout"
+                android:id="@+id/userOptionsLayout"
                 android:layout_width="394dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
@@ -130,7 +130,15 @@
                     android:background="@color/colorPrimary"
                     android:onClick="signInToMeeting"
                     android:text="@string/signInToMeetingMessage"
-                    android:textSize="22sp" />
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/viewPastMeetingsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="viewPastMeetings"
+                    android:text="@string/viewPastMeetingsMessage"
+                    android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -166,6 +174,13 @@
                     android:text="@string/editMeeting" />
 
                 <Button
+                    android:id="@+id/viewMeetingAttendanceButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="viewMeetingAttendance"
+                    android:text="@string/viewMeetingAttendanceMessage" />
+
+                <Button
                     android:id="@+id/viewUsersButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -176,6 +191,7 @@
                     android:id="@+id/deleteAllPreviousMeetingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
                     android:onClick="delAllPreviousMeetings"
                     android:text="@string/delPreviousMeetingsLabel"
                     android:textColor="@color/colorPrimary"/>

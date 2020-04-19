@@ -66,6 +66,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         TextView adminLabel = findViewById(R.id.adminOptionsLabel);
         Button scheduleButton = findViewById(R.id.scheduleMeetingButton);
         Button editButton = findViewById(R.id.editMeetingButton);
+        Button viewMeetingAttendanceButton = findViewById(R.id.viewMeetingAttendanceButton);
         Button viewUsersButton = findViewById(R.id.viewUsersButton);
         Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
         Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
@@ -73,10 +74,10 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         adminLabel.setVisibility(View.GONE);
         scheduleButton.setVisibility(View.GONE);
         editButton.setVisibility(View.GONE);
+        viewMeetingAttendanceButton.setVisibility((View.GONE));
         viewUsersButton.setVisibility(View.GONE);
         delPrevMeetingsButton.setVisibility(View.GONE);
         delAllMeetingsButton.setVisibility(View.GONE);
-
     }
 
 
@@ -94,16 +95,19 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
-        TextView nameTextView = (TextView) (findViewById(R.id.displayName));
+        TextView nameTextView = findViewById(R.id.displayName);
         nameTextView.setText("Name: " + name);
         nameTextView.startAnimation(fadeIn);
 
-        TextView departmentTextView = (TextView) (findViewById(R.id.displayDepartment));
+        TextView departmentTextView = findViewById(R.id.displayDepartment);
         departmentTextView.setText("Department: " + department);
         departmentTextView.startAnimation(fadeIn);
 
         Button signInToMeetingBtn = findViewById(R.id.signInToMeetingButton);
         signInToMeetingBtn.startAnimation(fadeIn);
+
+        Button viewPastMeetingsBtn = findViewById(R.id.viewPastMeetingsButton);
+        viewPastMeetingsBtn.startAnimation(fadeIn);
 
         displayNextMeetingInfo();
 
@@ -180,6 +184,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         TextView adminLabel = findViewById(R.id.adminOptionsLabel);
         Button scheduleButton = findViewById(R.id.scheduleMeetingButton);
         Button editButton = findViewById(R.id.editMeetingButton);
+        Button viewMeetingAttendanceButton = findViewById(R.id.viewMeetingAttendanceButton);
         Button viewUsersButton = findViewById(R.id.viewUsersButton);
         Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
         Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
@@ -192,6 +197,9 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         editButton.setVisibility(View.VISIBLE);
         editButton.startAnimation(fadeIn);
+
+        viewMeetingAttendanceButton.setVisibility(View.VISIBLE);
+        viewMeetingAttendanceButton.startAnimation(fadeIn);
 
         viewUsersButton.setVisibility(View.VISIBLE);
         viewUsersButton.startAnimation(fadeIn);
@@ -255,6 +263,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
     public void viewAllUsers(View view) {
         Intent goToUserList = new Intent(this, UserListActivity.class);
+        goToUserList.putExtra("purpose", "VIEW_ALL");
         startActivity(goToUserList);
     }
 
@@ -329,5 +338,20 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public void viewPastMeetings(View view) {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        String userId = currentUser.getObjectId();
+        Intent displayMeetings = new Intent(this, ViewAllMeetings.class);
+        displayMeetings.putExtra("purpose", "READ-USER_SPECIFIC");
+        displayMeetings.putExtra("userId", userId);
+        startActivity(displayMeetings);
+    }
+
+    public void viewMeetingAttendance(View view) {
+        Intent goToMeetingList = new Intent(this, ViewAllMeetings.class);
+        goToMeetingList.putExtra("purpose", "READ-VIEW_ATTENDANCE");
+        startActivity(goToMeetingList);
     }
 }

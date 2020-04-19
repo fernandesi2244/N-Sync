@@ -7,8 +7,10 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,9 +45,12 @@ public class ViewAllMeetings extends AppCompatActivity {
             case "READ-WRITE":
                 initializeListWithEditingCapabilities();
                 break;
-            case "READ":
+            case "READ-USER_SPECIFIC":
                 String userId = receivedIntent.getStringExtra("userId");
                 initializeListWithReadingCapabilities(userId);
+                break;
+            case "READ-VIEW_ATTENDANCE":
+                initializeListForViewingMeetingAttendance();
                 break;
             default:
                 Toast.makeText(getApplicationContext(), "Something went wrong...", Toast.LENGTH_LONG).show();
@@ -56,9 +61,7 @@ public class ViewAllMeetings extends AppCompatActivity {
     private void initializeListWithEditingCapabilities() {
         TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
         activityLabel.setText(R.string.editMeetingsMessage);
-
-        LinearLayout meetingsLayout = findViewById(R.id.meetingsLayout);
-        meetingsLayout.removeAllViews();
+        ListView listview = findViewById(R.id.listView);
 
         List<ParseObject> meetings;
 
@@ -66,60 +69,38 @@ public class ViewAllMeetings extends AppCompatActivity {
         queryAllMeetings.orderByDescending("meetingDate");
         try {
             meetings = queryAllMeetings.find();
-        } catch (ParseException e) {
+            if (meetings == null)
+                throw new Exception();
+        } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Error: Could not retrieve meetings. Please try again later.", Toast.LENGTH_LONG).show();
             goBackToProfile();
             return;
         }
 
-        if (meetings == null) {
-            Toast.makeText(getApplicationContext(), "Error: Could not retrieve meetings. Please try again later.", Toast.LENGTH_LONG).show();
-            goBackToProfile();
-            return;
-        }
+        final MeetingArrayAdapter adapter = new MeetingArrayAdapter(this,
+                android.R.layout.simple_list_item_1, meetings);
+        listview.setAdapter(adapter);
 
-        for (ParseObject current : meetings) {
-            Button nextButton = new Button(this);
-            nextButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-            String meetingDescription = current.getString("meetingDescription");
-            Date nextMeetingDate = current.getDate("meetingDate");
-            DateFormat df = new SimpleDateFormat("M/dd/yy @ h:mm a");
-            String date = df.format(nextMeetingDate);
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view,
+                                    int position, long id) {
+                ParseObject item = (ParseObject) parent.getItemAtPosition(position);
+                goToScheduleMeetingActivity(item.getObjectId());
+            }
 
-            nextButton.setText("Description: " + meetingDescription + "; Time: " + date + "; ID: " + current.getObjectId());
-            nextButton.setId(View.generateViewId());
-            nextButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Button clickedButton = (Button) v;
-                    String btnText = clickedButton.getText().toString();
-                    String objectId = btnText.split("ID: ")[1];
-
-                    goToScheduleMeetingActivity(objectId);
-                }
-            });
-
-            meetingsLayout.addView(nextButton);
-        }
+        });
 
         if (meetings.size() == 0) {
-            TextView noMeetingsView = new TextView(this);
-            noMeetingsView.setGravity(Gravity.CENTER);
-            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-            noMeetingsView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            noMeetingsView.setText(R.string.noMeetingsFoundMessage);
-            noMeetingsView.setId(View.generateViewId());
-            meetingsLayout.addView(noMeetingsView);
+            Toast.makeText(getApplicationContext(), R.string.noMeetingsFoundMessage, Toast.LENGTH_LONG).show();
         }
     }
 
     private void initializeListWithReadingCapabilities(String userId) {
         TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
         activityLabel.setText(R.string.viewMeetingsMessage);
-
-        LinearLayout meetingsLayout = findViewById(R.id.meetingsLayout);
-        meetingsLayout.removeAllViews();
+        ListView listview = findViewById(R.id.listView);
 
         List<ParseUser> users;
         ParseQuery<ParseUser> findUser = ParseUser.getQuery();
@@ -128,55 +109,42 @@ public class ViewAllMeetings extends AppCompatActivity {
             users = findUser.find();
             if (users == null || users.size() != 1)
                 throw new Exception();
-        } catch (ParseException e) {
-            Toast.makeText(getApplicationContext(), "Error: Could not retrieve user's meetings. Please try again later.", Toast.LENGTH_LONG).show();
-            goBackToProfile();
-            return;
-        } catch (Exception e2) {
+        } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Error: Could not retrieve user's meetings. Please try again later.", Toast.LENGTH_LONG).show();
             goBackToProfile();
             return;
         }
 
         ParseUser user = users.get(0);
-        List<ParseObject> userMeetings = transform(user.getList("meetingsAttended"));
+        List<Object> pointers = user.getList("meetingsAttended");
+        if (pointers == null) {
+            Toast.makeText(getApplicationContext(), "Error: Could not retrieve user's meetings. Please try again later.", Toast.LENGTH_LONG).show();
+            goBackToProfile();
+            return;
+        }
+
+        List<ParseObject> userMeetings = transform(pointers);
 
         Collections.sort(userMeetings, new Comparator<ParseObject>() {
+
             @Override
             public int compare(ParseObject first, ParseObject second) {
                 if (first.getDate("meetingDate").before(second.getDate("meetingDate")))
                     return 1;
-                return -1;
+                else if (first.getDate("meetingDate").after(second.getDate("meetingDate")))
+                    return -1;
+                return 0;
             }
         });
 
-        for (ParseObject current : userMeetings) {
-            TextView nextView = new TextView(this);
-            nextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            nextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
-            String meetingDescription = current.getString("meetingDescription");
-            Date nextMeetingDate = current.getDate("meetingDate");
-            DateFormat df = new SimpleDateFormat("M/dd/yy @ h:mm a");
-            String date = df.format(nextMeetingDate);
-
-            nextView.setText("Description: " + meetingDescription + "; Time: " + date + "; ID: " + current.getObjectId());
-            nextView.setId(View.generateViewId());
-
-            meetingsLayout.addView(nextView);
-
-        }
+        final MeetingArrayAdapter adapter = new MeetingArrayAdapter(this,
+                android.R.layout.simple_list_item_1, userMeetings);
+        listview.setAdapter(adapter);
 
         if (userMeetings.size() == 0) {
-            TextView noMeetingsView = new TextView(this);
-            noMeetingsView.setGravity(Gravity.CENTER);
-            noMeetingsView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-            noMeetingsView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            noMeetingsView.setText(R.string.userHasNotAttendedAnyMeetingsMessage);
-            noMeetingsView.setId(View.generateViewId());
-            meetingsLayout.addView(noMeetingsView);
+            Toast.makeText(getApplicationContext(), "The user has not attended any meetings.", Toast.LENGTH_LONG).show();
         }
-
     }
 
     private List<ParseObject> transform(List<Object> pointers) {
@@ -190,27 +158,60 @@ public class ViewAllMeetings extends AppCompatActivity {
             try {
                 List<ParseObject> returnedResults = getMeeting.find();
                 if (returnedResults == null) {
-                    throw new Exception("null");
-                } else if (returnedResults.size() != 1) {
-                    throw new Exception("size");
+                    throw new Exception();
                 }
-                meetings.add(returnedResults.get(0));
+                if (returnedResults.size() != 0)
+                    meetings.add(returnedResults.get(0));
             } catch (ParseException e) {
+                //Do nothing (Most likely, the meeting could not be found, indicating that it was probably deleted by an admin)
+                //Therefore, we should keep iterating over the meetings to see if there are any meetings that haven't been deleted.
+            } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meetings. Please try again later!", Toast.LENGTH_LONG).show();
                 goBackToProfile();
                 return new ArrayList<>();
-            } catch (Exception e2) {
-                if (e2.getMessage().equals("size")) {
-                    //Do nothing (Most likely, the meeting could not be found, indicating that it was probably deleted by an admin)
-                    //Therefore, we should keep iterating over the meetings to see if there are any meetings that haven't been deleted.
-                } else {
-                    Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meetings. Please try again later!", Toast.LENGTH_LONG).show();
-                    goBackToProfile();
-                    return new ArrayList<>();
-                }
             }
         }
         return meetings;
+    }
+
+    private void initializeListForViewingMeetingAttendance() {
+        TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
+        activityLabel.setText(R.string.viewMeetingAttendanceMessage);
+        ListView listview = findViewById(R.id.listView);
+
+        List<ParseObject> meetings;
+
+        ParseQuery<ParseObject> queryAllMeetings = ParseQuery.getQuery("Meeting");
+        queryAllMeetings.orderByDescending("meetingDate");
+        try {
+            meetings = queryAllMeetings.find();
+            if (meetings == null)
+                throw new Exception();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Error: Could not retrieve meetings. Please try again later.", Toast.LENGTH_LONG).show();
+            goBackToProfile();
+            return;
+        }
+
+        final MeetingArrayAdapter adapter = new MeetingArrayAdapter(this,
+                android.R.layout.simple_list_item_1, meetings);
+        listview.setAdapter(adapter);
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view,
+                                    int position, long id) {
+                ParseObject item = (ParseObject) parent.getItemAtPosition(position);
+                goToUserListActivity(item.getObjectId());
+            }
+
+        });
+
+        if (meetings.size() == 0) {
+            Toast.makeText(getApplicationContext(), R.string.noMeetingsFoundMessage, Toast.LENGTH_LONG).show();
+        }
+
     }
 
     private void goToScheduleMeetingActivity(String meetingID) {
@@ -222,5 +223,12 @@ public class ViewAllMeetings extends AppCompatActivity {
     private void goBackToProfile() {
         Intent goToProfile = new Intent(this, ProfileActivity.class);
         startActivity(goToProfile);
+    }
+
+    private void goToUserListActivity(String meetingId) {
+        Intent goToUserList = new Intent(this, UserListActivity.class);
+        goToUserList.putExtra("purpose", "VIEW_SPECIFIC");
+        goToUserList.putExtra("meetingId", meetingId);
+        startActivity(goToUserList);
     }
 }

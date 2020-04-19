@@ -130,10 +130,10 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
-                        Toast.makeText(getApplicationContext(), "Successful Sign Up! Welcome "+name.getText().toString()+"!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Successful Sign Up! Welcome "+titleCase(name.getText().toString())+"!", Toast.LENGTH_LONG).show();
                         ParseUser currentUser = ParseUser.getCurrentUser();
                         //////////////////////////////////////////////////////////////////////////////////
-                        currentUser.put("name", name.getText().toString());
+                        currentUser.put("name", titleCase(name.getText().toString()));
                         currentUser.put("department", department);
                         currentUser.put("noMeetingsAttended", 0);
                         currentUser.put("meetingsAttended", new ArrayList<ParseObject>());
@@ -155,5 +155,15 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
         } else {
             Toast.makeText(getApplicationContext(), "The passwords do not match, please try again.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private String titleCase(String input) {
+        String[] words = input.split("\\s+");
+        String newString = "";
+        for(String word: words) {
+            String temp = Character.toUpperCase(word.charAt(0))+word.substring(1).toLowerCase();
+            newString+=temp+" ";
+        }
+        return newString.trim();
     }
 }

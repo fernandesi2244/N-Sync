@@ -69,7 +69,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
         getMargin.whereEqualTo("objectId", "ZCHh4cadL1");
         try {
             List<ParseObject> parseObjects = getMargin.find();
-            if(parseObjects.size()>0) {
+            if (parseObjects.size() > 0) {
                 marginInMinutes = parseObjects.get(0).getNumber("marginInMinutes").longValue();
             } else {
                 Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
@@ -142,7 +142,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
         } catch (Exception e) {
             TextView noMeetingsTextView = new TextView(this);
             noMeetingsTextView.setGravity(Gravity.CENTER);
-            noMeetingsTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,18);
+            noMeetingsTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
             noMeetingsTextView.setText(R.string.noMeetingsScheduledMessage);
             noMeetingsTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             noMeetingsTextView.setId(View.generateViewId());
@@ -195,7 +195,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
         getMargin.whereEqualTo("objectId", "ZCHh4cadL1");
         try {
             List<ParseObject> parseObjects = getMargin.find();
-            if(parseObjects.size()>0) {
+            if (parseObjects.size() > 0) {
                 marginInMinutes = parseObjects.get(0).getNumber("marginInMinutes").longValue();
             } else {
                 Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
@@ -225,16 +225,16 @@ public class MeetingSignInActivity extends AppCompatActivity {
 
         if (isRemote) {
             if (timingIsGood) {
-                ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>)currentUser.get("meetingsAttended");
+                ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>) currentUser.get("meetingsAttended");
 
-                if(meetingsAttendedByUser==null) {
+                if (meetingsAttendedByUser == null) {
                     Toast.makeText(getApplicationContext(), "Something went wrong during online retrieval of data. Please try again later!", Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 //Check if user already signed into the meeting
-                for(ParseObject mtng: meetingsAttendedByUser) {
-                    if(mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
+                for (ParseObject mtng : meetingsAttendedByUser) {
+                    if (mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
                         Toast.makeText(getApplicationContext(), "You already signed into this meeting!", Toast.LENGTH_LONG).show();
                         return;
                     }
@@ -245,7 +245,12 @@ public class MeetingSignInActivity extends AppCompatActivity {
                 currentUser.put("meetingsAttended", meetingsAttendedByUser);
                 currentUser.put("noMeetingsAttended", currentUser.getInt("noMeetingsAttended") + 1);
 
-                currentUser.saveInBackground();;//IMPORTANT
+                currentUser.saveEventually();
+
+                ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
+                meetingUsers.add(currentUser);
+                clickedMeeting.put("usersThatAttended", meetingUsers);
+                clickedMeeting.saveEventually();
 
                 Toast.makeText(getApplicationContext(), "You successfully signed into the meeting!", Toast.LENGTH_LONG).show();
                 goToProfile();
@@ -280,7 +285,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
         getMargin.whereEqualTo("objectId", "s5qyTqdbHY");
         try {
             List<ParseObject> parseObjects = getMargin.find();
-            if(parseObjects.size()>0) {
+            if (parseObjects.size() > 0) {
                 locationMargin = parseObjects.get(0).getNumber("locationMarginInMeters").floatValue();
             } else {
                 Toast.makeText(getApplicationContext(), "Error: Meeting location margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
@@ -295,16 +300,16 @@ public class MeetingSignInActivity extends AppCompatActivity {
 
         float actualDistance = currentLoc.distanceTo(meetingLoc);
         if (actualDistance < locationMargin) {
-            ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>)currentUser.get("meetingsAttended");
+            ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>) currentUser.get("meetingsAttended");
 
-            if(meetingsAttendedByUser==null) {
+            if (meetingsAttendedByUser == null) {
                 Toast.makeText(getApplicationContext(), "Something went wrong during online retrieval of data. Please try again later!", Toast.LENGTH_LONG).show();
                 return;
             }
 
             //Check if user already signed into the meeting
-            for(ParseObject mtng: meetingsAttendedByUser) {
-                if(mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
+            for (ParseObject mtng : meetingsAttendedByUser) {
+                if (mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
                     Toast.makeText(getApplicationContext(), "You already signed into this meeting!", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -315,7 +320,12 @@ public class MeetingSignInActivity extends AppCompatActivity {
             currentUser.put("meetingsAttended", meetingsAttendedByUser);
             currentUser.put("noMeetingsAttended", currentUser.getInt("noMeetingsAttended") + 1);
 
-            currentUser.saveInBackground();;//IMPORTANT
+            currentUser.saveEventually();
+
+            ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
+            meetingUsers.add(currentUser);
+            clickedMeeting.put("usersThatAttended", meetingUsers);
+            clickedMeeting.saveEventually();
 
             Toast.makeText(getApplicationContext(), "You successfully signed into the meeting!", Toast.LENGTH_LONG).show();
             goToProfile();
