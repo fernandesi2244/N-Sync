@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -44,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         logoAnimation();
+        editTextAnimations();
+        buttonAnimations();
 
         // Save the current Installation to Back4App
         ParseInstallation.getCurrentInstallation().saveInBackground();
@@ -101,4 +104,21 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
+    private void editTextAnimations() {
+        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
+        EditText username = findViewById(R.id.enterUsernameLogin);
+        EditText password = findViewById(R.id.enterPasswordLogin);
+        username.startAnimation(fadeIn);
+        password.startAnimation(fadeIn);
+    }
+
+    private void buttonAnimations() {
+        Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
+        Button logInButton = findViewById(R.id.loginButton);
+        Button signUpButton = findViewById(R.id.signUpButton);
+        logInButton.startAnimation(fadeIn);
+        signUpButton.startAnimation(fadeIn);
+    }
+
 }

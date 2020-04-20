@@ -1,11 +1,13 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -33,6 +35,8 @@ public class UserListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         Intent receivedIntent = getIntent();
         String purpose = receivedIntent.getStringExtra("purpose");
@@ -45,6 +49,18 @@ public class UserListActivity extends AppCompatActivity {
             case "VIEW_ALL":
             default:
                 initUserList();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; goto parent activity.
+                this.finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -105,6 +121,9 @@ public class UserListActivity extends AppCompatActivity {
         List<Object> pointers = meeting.getList("usersThatAttended");
         List<ParseUser> users = transform(pointers);
 
+        List<Object> latePointers = meeting.getList("usersThatAttendedLate");
+        List<ParseUser> lateUsers = transform(latePointers);
+
         Collections.sort(users, new Comparator<ParseUser>() {
             @Override
             public int compare(ParseUser first, ParseUser second) {
@@ -114,6 +133,7 @@ public class UserListActivity extends AppCompatActivity {
 
         final UserArrayAdapter adapter = new UserArrayAdapter(this,
                 android.R.layout.simple_list_item_1, users);
+        adapter.addLate(lateUsers);
         listview.setAdapter(adapter);
 
         if (users.size() == 0) {

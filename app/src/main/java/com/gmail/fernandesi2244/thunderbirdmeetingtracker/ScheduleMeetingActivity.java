@@ -1,6 +1,7 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -13,6 +14,7 @@ import android.icu.util.Calendar;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -61,7 +63,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     static final int TIME_DIALOG_ID = 1111;
 
     private int hour, minute, year, month, dayOfMonth;
-    private boolean remoteChecked, usingDeviceLocation, usingExistingLocation;
+    private boolean verifyWithLocChecked, usingDeviceLocation, usingExistingLocation;
     private String audience, meetingID;
     private final int idGenerated = 314159265;
 
@@ -83,6 +85,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule_meeting);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         Intent receivedIntent = getIntent();
         meetingID = receivedIntent.getStringExtra("meetingID");
@@ -94,11 +98,25 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             case "NONE":
                 usingDeviceLocation = true;
                 showButton(false);
+                CheckBox verifyWithLocCheckBox = findViewById(R.id.verifyWithLocCheckBox);
+                onRemoteCheckboxClicked(verifyWithLocCheckBox);
                 break;
             default:
                 usingDeviceLocation = false;
                 showButton(true);
                 setUpWithMeetingID();
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; goto parent activity.
+                this.finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
@@ -121,7 +139,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     }
 
     public void onNothingSelected(AdapterView<?> parent) {
-        // Another interface callback
+        audience = "General";
     }
 
     private void showButton(boolean show) {
@@ -166,25 +184,25 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     }
 
     public void onRemoteCheckboxClicked(View view) {
-        remoteChecked = ((CheckBox) view).isChecked();
+        verifyWithLocChecked = ((CheckBox) view).isChecked();
 
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
 
         TextView chooseLocationLabel = findViewById(R.id.chooseLocationLabel);
         RadioGroup locRadiogroup = findViewById(R.id.locationRadioGroup);
 
-        if (remoteChecked) {
-            chooseLocationLabel.clearAnimation();
-            chooseLocationLabel.setVisibility(View.GONE);
-
-            locRadiogroup.clearAnimation();
-            locRadiogroup.setVisibility(View.GONE);
-        } else {
+        if (verifyWithLocChecked) {
             chooseLocationLabel.setVisibility(View.VISIBLE);
             chooseLocationLabel.startAnimation(fadeIn);
 
             locRadiogroup.setVisibility(View.VISIBLE);
             locRadiogroup.startAnimation(fadeIn);
+        } else {
+            chooseLocationLabel.clearAnimation();
+            chooseLocationLabel.setVisibility(View.GONE);
+
+            locRadiogroup.clearAnimation();
+            locRadiogroup.setVisibility(View.GONE);
         }
     }
 
@@ -280,7 +298,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         ParseObject meeting = new ParseObject("Meeting");
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
-        if (remoteChecked) {
+        if (!verifyWithLocChecked) {
             meeting.put("isRemote", true);
         } else {
             meeting.put("isRemote", false);
@@ -383,7 +401,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
-        if (remoteChecked) {
+        if (!verifyWithLocChecked) {
             meeting.put("isRemote", true);
         } else {
             meeting.put("isRemote", false);
@@ -544,13 +562,13 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         setDateLabel();
 
         boolean meetingIsRemote = meeting.getBoolean("isRemote");
-        CheckBox remoteCheckBox = findViewById(R.id.remoteCheckBox);
-        remoteCheckBox.setChecked(meetingIsRemote);
-        onRemoteCheckboxClicked(remoteCheckBox);
+        CheckBox verifyWithLocCheckBox = findViewById(R.id.verifyWithLocCheckBox);
+        verifyWithLocCheckBox.setChecked(!meetingIsRemote);
+        onRemoteCheckboxClicked(verifyWithLocCheckBox);
         RadioGroup locationRadioGroup = findViewById(R.id.locationRadioGroup);
         if (!meetingIsRemote) {
             locIfUsingExistingLocation = meeting.getParseGeoPoint("meetingLocation");
-            //Add radio button for using existing location and choose it by default (MAKE APPROPRIATE CHANGES TO SUBMIT() METHOD)
+            //Add radio button for using existing location and choose it by default
             RadioButton useExistingLocationRB = new RadioButton(this);
             useExistingLocationRB.setText(R.string.useExistingLocationMessage);
             //idGenerated = View.generateViewId();

@@ -25,19 +25,19 @@
     <string name="editMeeting">Edit Existing Meeting</string>
     <string name="scheduleLabelString">Meeting Scheduler</string>
     <string name="chooseDateString">Choose a Date</string>
-    <string name="chooseRemoteString">Is this Meeting Remote?</string>
+    <string name="chooseRemoteString">Verify attendance based on location?</string>
     <string name="chooseLocationString">Choose a Location</string>
     <string name="useDeviceLocation">Current Device Location</string>
     <string name="submitMessage">Submit</string>
     <string name="changeTimeString">Change time</string>
     <string name="customLocationLabel">Custom Location</string>
     <string name="chooseDescriptionString">Meeting Description</string>
-    <string name="enterDescriptionText">Enter meeting description here</string>
+    <string name="enterDescriptionText">Purpose, location, objectives, mandatory?, etc.)</string>
     <string name="chooseAudienceString">Who is this Meeting for?</string>
     <string name="noMeetingsScheduledMessage">Currently, there are no meetings scheduled.</string>
     <string name="signInToMeetingMessage">Sign in to Meeting</string>
     <string name="meetingSignInMessage">Choose a Meeting to Sign Into</string>
-    <string name="locationRemoteMessage">Location: Remote</string>
+    <string name="locationRemoteMessage"><b>Location Verification:</b> Not checked for attendance verification</string>
     <string name="viewAllUsers">View All Users</string>
     <string name="viewMeetingsMessage">View Meetings</string>
     <string name="useExistingLocationMessage">Use existing (saved) location</string>
@@ -52,6 +52,15 @@
     <string name="viewPastMeetingsMessage">View past meetings</string>
     <string name="viewMeetingAttendanceMessage">View meeting attendance</string>
     <string name="noUsersFoundForMeetingMessage">There are currently no users who have signed into this meeting.</string>
+    <string name="viewLogMessage">View Log</string>
+    <string name="changeMarginsMessage">Change Location/Time Margins</string>
+    <string name="choose_location_margin_message">Choose location margin:</string>
+    <string name="in_meters_message">(in meters)</string>
+    <string name="choose_time_margin_message">Choose time margin:</string>
+    <string name="in_minutes_message">(in minutes)</string>
+    <string name="update">Update</string>
+    <string name="meters_message">meters</string>
+    <string name="minutes_message">minutes</string>
 
     <string-array name="departmentsArray">
         <item>Computer Science</item>
@@ -80,6 +89,13 @@
         <item>CTE</item>
         <item>Administrator</item>
         <item>Other</item>
+    </string-array>
+
+    <string-array name="logArray">
+        <item>High Priority</item>
+        <item>Medium Priority</item>
+        <item>Low Priority</item>
+        <item>All</item>
     </string-array>
 
 </resources>

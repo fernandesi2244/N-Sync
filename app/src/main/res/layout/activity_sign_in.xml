@@ -22,7 +22,8 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="@string/name"
-            android:inputType="textPersonName" />
+            android:inputType="textPersonName"
+            android:autofillHints="" />
 
         <EditText
             android:id="@+id/signInUsername"
@@ -30,7 +31,8 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="@string/username"
-            android:inputType="textPersonName" />
+            android:inputType="textPersonName"
+            android:autofillHints="" />
 
         <EditText
             android:id="@+id/signInPassword"
@@ -38,7 +40,8 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="@string/password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:autofillHints="" />
 
         <EditText
             android:id="@+id/signInConfirmPassword"
@@ -46,7 +49,8 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="@string/confirmPassword"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:autofillHints="" />
 
         <Space
             android:id="@+id/space1"
@@ -83,16 +87,24 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:hint="@string/enterAdminPass"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:autofillHints="" />
 
         <Button
             android:id="@+id/button"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp"
             android:onClick="signIn"
             android:text="@string/createAccount"
-            android:textColor="#FCFBFB" />
+            android:textColor="@color/lovelyWhite"
+            android:textSize="18sp"
+            android:background="@drawable/log_in_button_shape"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

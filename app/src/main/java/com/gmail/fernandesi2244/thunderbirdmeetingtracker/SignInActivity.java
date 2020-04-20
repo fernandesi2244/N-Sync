@@ -1,9 +1,11 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -36,6 +38,8 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         //Set up departments drop-down list
         Spinner spinner = findViewById(R.id.departmentMenu);
@@ -54,6 +58,18 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
 
         EditText userAdminPass = findViewById(R.id.signInAdminPass);
         userAdminPass.setVisibility(View.GONE);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; goto parent activity.
+                this.finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
@@ -135,7 +151,7 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
                         //////////////////////////////////////////////////////////////////////////////////
                         currentUser.put("name", titleCase(name.getText().toString()));
                         currentUser.put("department", department);
-                        currentUser.put("noMeetingsAttended", 0);
+                        currentUser.put("noMeetingsAttended", 0L);
                         currentUser.put("meetingsAttended", new ArrayList<ParseObject>());
                         if(isAdmin)
                             currentUser.put("isAdmin", true);

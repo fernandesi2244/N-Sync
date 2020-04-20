@@ -4,19 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FFFFFF"
     tools:context=".ProfileActivity">
-
 
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:backgroundTint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:id="@+id/scrollLinearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#FFFFFF"
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
@@ -52,6 +56,13 @@
 
                 <TextView
                     android:id="@+id/displayDepartment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/defaultTextBox"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/displayNoMeetings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/defaultTextBox"
@@ -102,13 +113,14 @@
                     android:id="@+id/mapLinLayout"
                     android:layout_width="match_parent"
                     android:layout_height="250dp">
-                <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-                    xmlns:tools="http://schemas.android.com/tools"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:id="@+id/map"
-                    tools:context=".MapsActivity"
-                    android:name="com.google.android.gms.maps.SupportMapFragment" />
+
+                    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                        xmlns:tools="http://schemas.android.com/tools"
+                        android:id="@+id/map"
+                        android:name="com.google.android.gms.maps.SupportMapFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="250dp"
+                        tools:context=".MapsActivity" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -127,16 +139,27 @@
                     android:id="@+id/signInToMeetingButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
+                    android:background="@drawable/sign_in_to_meeting_button_shape"
                     android:onClick="signInToMeeting"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/signInToMeetingMessage"
+                    android:textColor="#000000"
                     android:textSize="20sp" />
 
                 <Button
                     android:id="@+id/viewPastMeetingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/sign_in_to_meeting_button_shape"
                     android:onClick="viewPastMeetings"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/viewPastMeetingsMessage"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -163,46 +186,107 @@
                     android:id="@+id/scheduleMeetingButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="scheduleMeeting"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/scheduleMeeting" />
 
                 <Button
                     android:id="@+id/editMeetingButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="editExistingMeeting"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/editMeeting" />
 
                 <Button
                     android:id="@+id/viewMeetingAttendanceButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="viewMeetingAttendance"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/viewMeetingAttendanceMessage" />
 
                 <Button
                     android:id="@+id/viewUsersButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="viewAllUsers"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/viewAllUsers" />
+
+                <Button
+                    android:id="@+id/changeMarginsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
+                    android:onClick="changeMargins"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
+                    android:text="@string/changeMarginsMessage" />
+
+                <Button
+                    android:id="@+id/viewLogButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
+                    android:onClick="viewLog"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
+                    android:text="@string/viewLogMessage" />
 
                 <Button
                     android:id="@+id/deleteAllPreviousMeetingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="30dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="delAllPreviousMeetings"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/delPreviousMeetingsLabel"
-                    android:textColor="@color/colorPrimary"/>
+                    android:textColor="@color/colorPrimary" />
 
                 <Button
                     android:id="@+id/deleteAllMeetingsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="delAllMeetings"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"
                     android:text="@string/delAllMeetingsLabel"
-                    android:textColor="@color/colorPrimary"/>
+                    android:textColor="@color/colorPrimary" />
 
             </LinearLayout>
 
@@ -211,9 +295,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
+                android:background="@drawable/unimportant_button"
                 android:onClick="logOut"
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5"
                 android:text="@string/logOut"
                 android:textColor="@color/lovelyWhite"
+                android:textSize="14sp"
                 android:typeface="normal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

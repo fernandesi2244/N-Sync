@@ -1,17 +1,20 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.app.ActionBar;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -41,6 +44,7 @@ import java.util.List;
 public class MeetingSignInActivity extends AppCompatActivity {
 
     public static final String MeetingSignInActivityID = "MeetingSignInActivity";
+    public static final int MILLISECONDS_PER_MINUTE = 60_000;
 
     private static long marginInMinutes;
 
@@ -48,11 +52,14 @@ public class MeetingSignInActivity extends AppCompatActivity {
     private Location currentLoc;
     private ParseObject clickedMeeting;
     private float locationMargin;
+    private boolean userLate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meeting_sign_in);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -61,26 +68,23 @@ public class MeetingSignInActivity extends AppCompatActivity {
         setUpMeetingsList();
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; goto parent activity.
+                this.finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     private void setUpMeetingsList() {
         LinearLayout meetingsLayout = findViewById(R.id.meetingsLayout);
         meetingsLayout.removeAllViews();
 
-        ParseQuery<ParseObject> getMargin = ParseQuery.getQuery("MeetingAttendanceMarginOfError");
-        getMargin.whereEqualTo("objectId", "ZCHh4cadL1");
-        try {
-            List<ParseObject> parseObjects = getMargin.find();
-            if (parseObjects.size() > 0) {
-                marginInMinutes = parseObjects.get(0).getNumber("marginInMinutes").longValue();
-            } else {
-                Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-                return;
-            }
-        } catch (ParseException e) {
-            Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        long marginInMilliseconds = marginInMinutes * 60_000;
+        long marginInMilliseconds = 24 * 60 * MILLISECONDS_PER_MINUTE; //milliseconds in a day
         Date earliestDate = new Date();
         earliestDate.setTime(new Date().getTime() - marginInMilliseconds);
 
@@ -90,7 +94,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
         ParseQuery<ParseObject> findEligibleMeetings = ParseQuery.getQuery("Meeting");
         findEligibleMeetings.whereContainedIn("audience", Arrays.asList(acceptableDepartments));
         findEligibleMeetings.whereGreaterThanOrEqualTo("meetingDate", earliestDate);
-        findEligibleMeetings.orderByAscending("meetingDate");
+        findEligibleMeetings.orderByDescending("meetingDate");
 
         try {
             List<ParseObject> meetings = findEligibleMeetings.find();
@@ -100,13 +104,15 @@ public class MeetingSignInActivity extends AppCompatActivity {
             for (ParseObject current : meetings) {
                 Button nextButton = new Button(this);
                 nextButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                nextButton.setGravity(Gravity.LEFT);
 
                 String meetingDescription = current.getString("meetingDescription");
                 Date nextMeetingDate = current.getDate("meetingDate");
                 DateFormat df = new SimpleDateFormat("M/dd/yy @ h:mm a");
                 String date = df.format(nextMeetingDate);
-
-                nextButton.setText("Description: " + meetingDescription + "; Time: " + date + "; ID: " + current.getObjectId());
+                String html = "<b>Description:</b> " + meetingDescription + "<br/><b>Time:</b> " + date + "<br/><b>ID:</b> " + current.getObjectId();
+                Spanned durationSpanned = Html.fromHtml(html, Html.FROM_HTML_MODE_LEGACY);
+                nextButton.setText(durationSpanned);
                 nextButton.setId(View.generateViewId());
                 nextButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -206,20 +212,22 @@ public class MeetingSignInActivity extends AppCompatActivity {
             return;
         }
 
-        long marginInMilliseconds = marginInMinutes * 60_000;
+        long marginInMilliseconds = marginInMinutes * MILLISECONDS_PER_MINUTE;
         Date meetingDate = clickedMeeting.getDate("meetingDate");
 
         Date currentDate = new Date();
         Date beforeDate = new Date();
-        beforeDate.setTime(currentDate.getTime() - marginInMilliseconds);
+        beforeDate.setTime(meetingDate.getTime() - marginInMilliseconds);
         Date afterDate = new Date();
-        afterDate.setTime(currentDate.getTime() + marginInMilliseconds);
+        afterDate.setTime(meetingDate.getTime() + marginInMilliseconds);
 
         boolean timingIsGood = false;
 
-        if (beforeDate.getTime() <= meetingDate.getTime() && meetingDate.getTime() <= afterDate.getTime()) {
+        if (currentDate.getTime() >= beforeDate.getTime()) {
             timingIsGood = true;
         }
+
+        userLate = currentDate.getTime() > afterDate.getTime();
 
         ParseUser currentUser = ParseUser.getCurrentUser();
 
@@ -243,19 +251,29 @@ public class MeetingSignInActivity extends AppCompatActivity {
                 meetingsAttendedByUser.add(clickedMeeting);
 
                 currentUser.put("meetingsAttended", meetingsAttendedByUser);
-                currentUser.put("noMeetingsAttended", currentUser.getInt("noMeetingsAttended") + 1);
+                currentUser.put("noMeetingsAttended", currentUser.getLong("noMeetingsAttended") + 1);
 
                 currentUser.saveEventually();
 
                 ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
                 meetingUsers.add(currentUser);
                 clickedMeeting.put("usersThatAttended", meetingUsers);
+
+                if (userLate) {
+                    ArrayList<ParseUser> lateMeetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttendedLate");
+                    lateMeetingUsers.add(currentUser);
+                    clickedMeeting.put("usersThatAttendedLate", lateMeetingUsers);
+                }
+
                 clickedMeeting.saveEventually();
 
-                Toast.makeText(getApplicationContext(), "You successfully signed into the meeting!", Toast.LENGTH_LONG).show();
+                if (userLate)
+                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting late!", Toast.LENGTH_LONG).show();
+                else
+                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting on time!", Toast.LENGTH_LONG).show();
                 goToProfile();
             } else {
-                Toast.makeText(getApplicationContext(), "Sorry, but you are either too early or too late to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Sorry, but you are too early to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
             }
         } else {
             if (!hasLocationPermissions()) {
@@ -264,7 +282,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
                 if (timingIsGood) {
                     getDeviceLocation();
                 } else {
-                    Toast.makeText(getApplicationContext(), "Sorry, but you are either too early or too late to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Sorry, but you are too early to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -318,16 +336,26 @@ public class MeetingSignInActivity extends AppCompatActivity {
             meetingsAttendedByUser.add(clickedMeeting);
 
             currentUser.put("meetingsAttended", meetingsAttendedByUser);
-            currentUser.put("noMeetingsAttended", currentUser.getInt("noMeetingsAttended") + 1);
+            currentUser.put("noMeetingsAttended", currentUser.getLong("noMeetingsAttended") + 1);
 
             currentUser.saveEventually();
 
             ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
             meetingUsers.add(currentUser);
             clickedMeeting.put("usersThatAttended", meetingUsers);
+
+            if (userLate) {
+                ArrayList<ParseUser> lateMeetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttendedLate");
+                lateMeetingUsers.add(currentUser);
+                clickedMeeting.put("usersThatAttendedLate", lateMeetingUsers);
+            }
+
             clickedMeeting.saveEventually();
 
-            Toast.makeText(getApplicationContext(), "You successfully signed into the meeting!", Toast.LENGTH_LONG).show();
+            if (userLate)
+                Toast.makeText(getApplicationContext(), "You successfully signed into the meeting late!", Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(getApplicationContext(), "You successfully signed into the meeting on time!", Toast.LENGTH_LONG).show();
             goToProfile();
         } else {
             Toast.makeText(getApplicationContext(), "Sorry, but you are not close enough to the meeting location to confirm your presence. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();

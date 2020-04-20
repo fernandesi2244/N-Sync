@@ -1,6 +1,7 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -13,6 +14,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.text.Html;
+import android.text.Spanned;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -49,7 +53,6 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     private static final double DEFAULT_LATITUDE = 29.456885f;
     private static final double DEFAULT_LONGITUDE = -98.357193f;
 
-
     private GoogleMap locMap;
     private ParseGeoPoint nextMeetingLocation;
 
@@ -57,9 +60,23 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         initMap();
         hideAdminContent();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // app icon in action bar clicked; goto parent activity.
+                logOut();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public void hideAdminContent() {
@@ -68,6 +85,8 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         Button editButton = findViewById(R.id.editMeetingButton);
         Button viewMeetingAttendanceButton = findViewById(R.id.viewMeetingAttendanceButton);
         Button viewUsersButton = findViewById(R.id.viewUsersButton);
+        Button changeMarginsButton = findViewById(R.id.changeMarginsButton);
+        Button viewLogButton = findViewById(R.id.viewLogButton);
         Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
         Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
 
@@ -76,6 +95,8 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         editButton.setVisibility(View.GONE);
         viewMeetingAttendanceButton.setVisibility((View.GONE));
         viewUsersButton.setVisibility(View.GONE);
+        changeMarginsButton.setVisibility(View.GONE);
+        viewLogButton.setVisibility(View.GONE);
         delPrevMeetingsButton.setVisibility(View.GONE);
         delAllMeetingsButton.setVisibility(View.GONE);
     }
@@ -91,17 +112,34 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         String name = currentUser.getString("name");
         String department = currentUser.getString("department");
+        long noMeetings = 0;
+        try {
+            noMeetings = currentUser.getLong("noMeetingsAttended");
+        } catch(Exception e) {
+            //This guy must have attended QUINTILLIONS of meetings :)
+            //In this case, don't do anything (it may also be some retrieval error).
+        }
         boolean isAdmin = currentUser.getBoolean("isAdmin");
 
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
         TextView nameTextView = findViewById(R.id.displayName);
-        nameTextView.setText("Name: " + name);
+        String nameHtml = "<b>Name:</b> " + name;
+        Spanned durationSpannedName = Html.fromHtml(nameHtml, Html.FROM_HTML_MODE_LEGACY);
+        nameTextView.setText(durationSpannedName);
         nameTextView.startAnimation(fadeIn);
 
         TextView departmentTextView = findViewById(R.id.displayDepartment);
-        departmentTextView.setText("Department: " + department);
+        String departmentHtml = "<b>Department:</b> " + department;
+        Spanned durationSpannedDepartment = Html.fromHtml(departmentHtml, Html.FROM_HTML_MODE_LEGACY);
+        departmentTextView.setText(durationSpannedDepartment);
         departmentTextView.startAnimation(fadeIn);
+
+        TextView noMeetingsTextView = findViewById(R.id.displayNoMeetings);
+        String noMeetingsHtml = "<b>Number of meetings attended:</b> " + noMeetings;
+        Spanned durationSpannedNoMeetings = Html.fromHtml(noMeetingsHtml, Html.FROM_HTML_MODE_LEGACY);
+        noMeetingsTextView.setText(durationSpannedNoMeetings);
+        noMeetingsTextView.startAnimation(fadeIn);
 
         Button signInToMeetingBtn = findViewById(R.id.signInToMeetingButton);
         signInToMeetingBtn.startAnimation(fadeIn);
@@ -118,10 +156,10 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     public void displayNextMeetingInfo() {
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
-        TextView meetingLabel = (TextView) (findViewById(R.id.nextMeetingLabel));
-        TextView meetingDescription = (TextView) (findViewById(R.id.displayNextMeetingDescription));
-        TextView meetingTime = (TextView) (findViewById(R.id.displayNextMeetingTime));
-        TextView meetingLocation = (TextView) (findViewById(R.id.displayNextMeetingLocation));
+        TextView meetingLabel = findViewById(R.id.nextMeetingLabel);
+        TextView meetingDescription = findViewById(R.id.displayNextMeetingDescription);
+        TextView meetingTime = findViewById(R.id.displayNextMeetingTime);
+        TextView meetingLocation = findViewById(R.id.displayNextMeetingLocation);
 
         Date currentDate = new Date();
         ParseUser currentUser = ParseUser.getCurrentUser();
@@ -138,18 +176,23 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
             ParseObject nextMeeting = meetings.get(0);
 
-            meetingDescription.setText("Description: " + nextMeeting.getString("meetingDescription"));
+            String descriptionHtml = "<b>Description:</b> " + nextMeeting.getString("meetingDescription");
+            Spanned durationSpannedDescription = Html.fromHtml(descriptionHtml, Html.FROM_HTML_MODE_LEGACY);
+            meetingDescription.setText(durationSpannedDescription);
 
             Date nextMeetingDate = nextMeeting.getDate("meetingDate");
             DateFormat df = new SimpleDateFormat("M/dd/yy @ h:mm a");
-            meetingTime.setText("Time: " + df.format(nextMeetingDate));
+            String timeHtml = "<b>Time:</b> " + df.format(nextMeetingDate);
+            Spanned durationSpannedTime = Html.fromHtml(timeHtml, Html.FROM_HTML_MODE_LEGACY);
+            meetingTime.setText(durationSpannedTime);
 
             boolean meetingIsRemote = nextMeeting.getBoolean("isRemote");
 
             if (!meetingIsRemote) {
                 nextMeetingLocation = nextMeeting.getParseGeoPoint("meetingLocation");
-                String loc = String.format("Location: (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
-                meetingLocation.setText(loc);
+                String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
+                Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
+                meetingLocation.setText(durationSpannedLoc);
 
                 setMapLocation();
                 LinearLayout mapLayout = findViewById(R.id.mapLinLayout);
@@ -186,6 +229,8 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         Button editButton = findViewById(R.id.editMeetingButton);
         Button viewMeetingAttendanceButton = findViewById(R.id.viewMeetingAttendanceButton);
         Button viewUsersButton = findViewById(R.id.viewUsersButton);
+        Button changeMarginsButton = findViewById(R.id.changeMarginsButton);
+        Button viewLogButton = findViewById(R.id.viewLogButton);
         Button delPrevMeetingsButton = findViewById(R.id.deleteAllPreviousMeetingsButton);
         Button delAllMeetingsButton = findViewById(R.id.deleteAllMeetingsButton);
 
@@ -203,6 +248,12 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         viewUsersButton.setVisibility(View.VISIBLE);
         viewUsersButton.startAnimation(fadeIn);
+
+        changeMarginsButton.setVisibility(View.VISIBLE);
+        changeMarginsButton.startAnimation(fadeIn);
+
+        viewLogButton.setVisibility(View.VISIBLE);
+        viewLogButton.startAnimation(fadeIn);
 
         delPrevMeetingsButton.setVisibility(View.VISIBLE);
         delPrevMeetingsButton.startAnimation(fadeIn);
@@ -240,8 +291,13 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     public void logOut(View view) {
         ParseUser.logOut();
         Toast.makeText(getApplicationContext(), "Come back soon!", Toast.LENGTH_LONG).show();
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        finish();
+    }
+
+    public void logOut() {
+        ParseUser.logOut();
+        Toast.makeText(getApplicationContext(), "Come back soon!", Toast.LENGTH_LONG).show();
+        finish();
     }
 
     public void scheduleMeeting(View view) {
@@ -353,5 +409,15 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         Intent goToMeetingList = new Intent(this, ViewAllMeetings.class);
         goToMeetingList.putExtra("purpose", "READ-VIEW_ATTENDANCE");
         startActivity(goToMeetingList);
+    }
+
+    public void viewLog(View view) {
+        Intent goToLogActivity = new Intent(this, LogActivity.class);
+        startActivity(goToLogActivity);
+    }
+
+    public void changeMargins(View view) {
+        Intent goToMarginsActivity = new Intent(this, EditMarginsActivity.class);
+        startActivity(goToMarginsActivity);
     }
 }

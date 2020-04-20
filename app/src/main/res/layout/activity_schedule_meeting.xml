@@ -85,45 +85,49 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <Button
-                android:id="@+id/changeTimeButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="changeTime"
-                android:text="@string/changeTimeString"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
-
             <TextView
                 android:id="@+id/dateChosenLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
                 android:text="@string/defaultTextBox"
                 android:textColor="#2D2F31"
                 android:textSize="24sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <Button
+                android:id="@+id/changeTimeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_gravity="center_horizontal"
+                android:onClick="changeTime"
+                android:text="@string/changeTimeString"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
             <LinearLayout
                 android:id="@+id/horizontalLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/chooseRemoteLabel"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/chooseRemoteString"
                     android:textColor="@color/colorPrimary"
                     android:textSize="22sp" />
 
                 <CheckBox
-                    android:id="@+id/remoteCheckBox"
-                    android:layout_width="0dp"
+                    android:id="@+id/verifyWithLocCheckBox"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:checked="true"
                     android:onClick="onRemoteCheckboxClicked" />
             </LinearLayout>
 
@@ -165,20 +169,31 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="30dp"
-                    android:background="@color/colorPrimary"
+                    android:background="@drawable/regular_button_shape"
                     android:onClick="deleteMeeting"
                     android:text="@string/removeMeeting"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:textColor="@color/colorPrimary"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"/>
 
             <Button
                 android:id="@+id/submitButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
-                android:background="@color/lovelyGreen"
+                android:layout_marginBottom="15dp"
+                android:background="@drawable/unimportant_button"
                 android:onClick="submitMeeting"
                 android:text="@string/submitMessage"
-                android:textSize="24sp" />
+                android:textSize="24sp"
+                android:textColor="@color/lovelyWhite"
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5"/>
 
 
         </LinearLayout>
