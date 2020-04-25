@@ -1,9 +1,9 @@
-# Thunderbird-Meeting-Tracker
+# N-Sync
 
 ## Inspiration
 I was asked to create this app for my school because of the tedious sign-in process that was taking place every single time
 a teacher meeting occurred. All of the teachers had to wait to physically sign in to the meetings, significantly reducing the
-time management and potential productivity of the meeting. The Thunderbird Meeting Tracker is an app to help address that issue!
+time management and potential productivity of the meeting. N-Sync is an app to help address that issue!
 
 ## What it does
 Each teacher can create an account on the app, saving their personal information and meeting attendance history to the Back4App
@@ -38,7 +38,7 @@ location, as well as the ParseQueries that I designed to optimally display resul
 Google Maps APIs, more ParseQuery skills, general Android skills (with various elements and their respective methods/operations),
 effectively working with Date manipulation and representation in Android
 
-## What's next for Thunderbird Meeting Tracker
+## What's next for N-Sync
 - Push notifications and emails for new meetings
 - ~~Log any errors caught (with their appropriate context) to the online database~~
 - Add logging mechanism specifically for debugging purposes (when the app is in production)
