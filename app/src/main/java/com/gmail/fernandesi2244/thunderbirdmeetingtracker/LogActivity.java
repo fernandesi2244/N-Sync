@@ -2,6 +2,7 @@ package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,7 +21,9 @@ import com.parse.ParseQuery;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class LogActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener, SwipeRefreshLayout.OnRefreshListener {
+
+    private String firstWordAllCaps = "ALL";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,8 @@ public class LogActivity extends AppCompatActivity implements AdapterView.OnItem
         setContentView(R.layout.activity_log);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeToRefreshLog);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         setUpMenu();
     }
@@ -59,7 +64,7 @@ public class LogActivity extends AppCompatActivity implements AdapterView.OnItem
     }
 
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        String firstWordAllCaps = parent.getItemAtPosition(pos).toString().split("\\s+")[0].toUpperCase();
+        firstWordAllCaps = parent.getItemAtPosition(pos).toString().split("\\s+")[0].toUpperCase();
         setUpList(firstWordAllCaps);
     }
 
@@ -96,5 +101,16 @@ public class LogActivity extends AppCompatActivity implements AdapterView.OnItem
     private void goBackToProfile() {
         Intent goToProfile = new Intent(this, ProfileActivity.class);
         startActivity(goToProfile);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshScreen();
+    }
+
+    private void refreshScreen() {
+        setUpList(firstWordAllCaps);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeToRefreshLog);
+        swipeRefreshLayout.setRefreshing(false);
     }
 }

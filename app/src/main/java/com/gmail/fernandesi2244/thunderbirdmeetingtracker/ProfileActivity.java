@@ -6,16 +6,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.Html;
+import android.text.Layout;
 import android.text.Spanned;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
@@ -40,16 +46,18 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final float DEFAULT_MAP_ZOOM = 15f;
+    private static final float DEFAULT_MAP_ZOOM = 16f;
     private static final double DEFAULT_LATITUDE = 29.456885f;
     private static final double DEFAULT_LONGITUDE = -98.357193f;
 
@@ -68,11 +76,22 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.base_menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // app icon in action bar clicked; goto parent activity.
+                // app icon in action bar clicked; go to parent activity.
                 logOut();
+                return true;
+            case R.id.menu_refresh:
+                refreshScreen();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -115,7 +134,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         long noMeetings = 0;
         try {
             noMeetings = currentUser.getLong("noMeetingsAttended");
-        } catch(Exception e) {
+        } catch (Exception e) {
             //This guy must have attended QUINTILLIONS of meetings :)
             //In this case, don't do anything (it may also be some retrieval error).
         }
@@ -162,8 +181,9 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         TextView meetingLocation = findViewById(R.id.displayNextMeetingLocation);
 
         Date currentDate = new Date();
+        currentDate.setTime(currentDate.getTime() - 5 * MeetingSignInActivity.MILLISECONDS_PER_MINUTE); //Show next meeting up to 5 minutes late
         ParseUser currentUser = ParseUser.getCurrentUser();
-        String[] acceptableDepartments = {"General", currentUser.getString("department")};
+        String[] acceptableDepartments = {"General", "general", currentUser.getString("department")};
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Meeting");
         query.whereContainedIn("audience", Arrays.asList(acceptableDepartments));
@@ -172,7 +192,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         try {
             List<ParseObject> meetings = query.find();
             if (meetings.size() == 0)
-                throw new Exception("failed");
+                throw new ParseException(ParseException.OBJECT_NOT_FOUND, "retrieval of object failed");
 
             ParseObject nextMeeting = meetings.get(0);
 
@@ -190,9 +210,10 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
             if (!meetingIsRemote) {
                 nextMeetingLocation = nextMeeting.getParseGeoPoint("meetingLocation");
-                String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
+                getAddressFromLocation(nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
+                /*String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
                 Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
-                meetingLocation.setText(durationSpannedLoc);
+                meetingLocation.setText(durationSpannedLoc);*/
 
                 setMapLocation();
                 LinearLayout mapLayout = findViewById(R.id.mapLinLayout);
@@ -205,8 +226,15 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                 mapLayout.setVisibility(View.GONE);
             }
 
-        } catch (Exception e) {
+        } catch (ParseException e) {
             meetingDescription.setText(R.string.noMeetingsScheduledMessage);
+            meetingTime.setText("");
+            meetingLocation.setText("");
+            setMapLocation(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
+            LinearLayout mapLayout = findViewById(R.id.mapLinLayout);
+            mapLayout.setVisibility(View.GONE);
+        } catch (Exception e) {
+            meetingDescription.setText(R.string.nextMeetingDisplayError);
             meetingTime.setText("");
             meetingLocation.setText("");
             setMapLocation(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
@@ -260,6 +288,35 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         delAllMeetingsButton.setVisibility(View.VISIBLE);
         delAllMeetingsButton.startAnimation(fadeIn);
+    }
+
+    private void getAddressFromLocation(double latitude, double longitude) {
+        TextView meetingLocation = findViewById(R.id.displayNextMeetingLocation);
+        Geocoder geocoder = new Geocoder(this, Locale.ENGLISH);
+
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            geocoder.getFromLocation(latitude, longitude, 1);
+
+            if (addresses.size() > 0) {
+                Address fetchedAddress = addresses.get(0);
+                StringBuilder strAddress = new StringBuilder(fetchedAddress.getAddressLine(0)+"("+fetchedAddress.getLocality()+")");
+
+                String locHtml = String.format("<b>Approximate location used for attendance verification:</b> %s", strAddress);
+                Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
+                meetingLocation.setText(durationSpannedLoc);
+
+            } else {
+                String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
+                Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
+                meetingLocation.setText(durationSpannedLoc);
+            }
+
+        } catch (Exception e) {
+            String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
+            Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
+            meetingLocation.setText(durationSpannedLoc);
+        }
     }
 
     private void initMap() {
@@ -343,7 +400,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                             }
                             ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all previous meetings from memory.", "HIGH");
                             Toast.makeText(getApplicationContext(), "Successfully queued all previous meetings for deletion from memory.", Toast.LENGTH_LONG).show();
-                            initMap();  //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
+                            refreshScreen(); //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
                         } catch (ParseException e) {
                             Toast.makeText(getApplicationContext(), "Could not retrieve meetings at this moment. Please try again later!", Toast.LENGTH_LONG).show();
                         }
@@ -379,7 +436,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                             }
                             ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all meetings from memory.", "HIGH");
                             Toast.makeText(getApplicationContext(), "Successfully queued all meetings for deletion from memory.", Toast.LENGTH_LONG).show();
-                            initMap();  //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
+                            refreshScreen(); //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
                         } catch (ParseException e) {
                             Toast.makeText(getApplicationContext(), "Could not retrieve meetings at this moment. Please try again later!", Toast.LENGTH_LONG).show();
                         }
@@ -397,6 +454,8 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     public void viewPastMeetings(View view) {
+        //For some reason, this takes a few moments if the user has attended at least 1 meeting that has been deleted
+        Toast.makeText(getApplicationContext(), "Loading... May take a few moments.", Toast.LENGTH_LONG).show();
         ParseUser currentUser = ParseUser.getCurrentUser();
         String userId = currentUser.getObjectId();
         Intent displayMeetings = new Intent(this, ViewAllMeetings.class);
@@ -419,5 +478,12 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     public void changeMargins(View view) {
         Intent goToMarginsActivity = new Intent(this, EditMarginsActivity.class);
         startActivity(goToMarginsActivity);
+    }
+
+    private void refreshScreen() {
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
     }
 }

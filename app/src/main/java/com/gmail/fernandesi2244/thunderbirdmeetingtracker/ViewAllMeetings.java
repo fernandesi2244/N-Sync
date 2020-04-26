@@ -2,6 +2,7 @@ package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,7 +32,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-public class ViewAllMeetings extends AppCompatActivity {
+public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener{
 
     private String purpose;
 
@@ -41,6 +42,8 @@ public class ViewAllMeetings extends AppCompatActivity {
         setContentView(R.layout.activity_view_all_meetings);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeToRefreshViewAllMeetings);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         Intent receivedIntent = getIntent();
         purpose = receivedIntent.getStringExtra("purpose");
@@ -246,5 +249,17 @@ public class ViewAllMeetings extends AppCompatActivity {
         goToUserList.putExtra("purpose", "VIEW_SPECIFIC");
         goToUserList.putExtra("meetingId", meetingId);
         startActivity(goToUserList);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshScreen();
+    }
+
+    private void refreshScreen() {
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
     }
 }

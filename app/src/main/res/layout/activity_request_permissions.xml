@@ -24,7 +24,8 @@
         android:layout_height="match_parent"
         android:layout_marginTop="125dp"
         android:text="@string/permissionsMessage"
-        android:textSize="20dp"
+        android:textSize="20sp"
+        android:gravity="center_horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/welcomeLabel" />

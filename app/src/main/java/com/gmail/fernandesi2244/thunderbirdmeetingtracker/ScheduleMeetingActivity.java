@@ -430,8 +430,15 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
-                    Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
+                    boolean good = true;
+                    if (currentUser == null) {
+                        finish();
+                        good = false;
+                    }
+                    if (good) {
+                        ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
+                        Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
+                    }
                     goBackToProfile();
                 } else {
                     // Error
@@ -439,6 +446,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 }
             }
         });
+
     }
 
     private void resumeUpdateRequestWithDeviceLocation() {
@@ -530,11 +538,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             } else {
                 throw new Exception();
             }
-        } catch (ParseException e) {
-            Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting information.", Toast.LENGTH_LONG).show();
-            goBackToProfile();
-            return;
-        } catch (Exception e2) {
+        } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting information.", Toast.LENGTH_LONG).show();
             goBackToProfile();
             return;
@@ -566,23 +570,29 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         verifyWithLocCheckBox.setChecked(!meetingIsRemote);
         onRemoteCheckboxClicked(verifyWithLocCheckBox);
         RadioGroup locationRadioGroup = findViewById(R.id.locationRadioGroup);
-        if (!meetingIsRemote) {
-            locIfUsingExistingLocation = meeting.getParseGeoPoint("meetingLocation");
-            //Add radio button for using existing location and choose it by default
-            RadioButton useExistingLocationRB = new RadioButton(this);
-            useExistingLocationRB.setText(R.string.useExistingLocationMessage);
-            //idGenerated = View.generateViewId();
-            useExistingLocationRB.setId(idGenerated);
-            locationRadioGroup.addView(useExistingLocationRB);
-            locationRadioGroup.check(idGenerated);
-            onRadioButtonClicked(useExistingLocationRB);
-            locationRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(RadioGroup group, int checkedId) {
-                    onRadioButtonClicked(findViewById(checkedId));
-                }
-            });
-        } else {
+        try {
+            if (!meetingIsRemote) {
+                locIfUsingExistingLocation = meeting.getParseGeoPoint("meetingLocation");
+                if (locIfUsingExistingLocation == null)
+                    throw new Exception();
+                //Add radio button for using existing location and choose it by default
+                RadioButton useExistingLocationRB = new RadioButton(this);
+                useExistingLocationRB.setText(R.string.useExistingLocationMessage);
+                useExistingLocationRB.setId(idGenerated);
+                locationRadioGroup.addView(useExistingLocationRB);
+                locationRadioGroup.check(idGenerated);
+                onRadioButtonClicked(useExistingLocationRB);
+                locationRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(RadioGroup group, int checkedId) {
+                        onRadioButtonClicked(findViewById(checkedId));
+                    }
+                });
+            } else {
+                usingDeviceLocation = true;
+            }
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Could not find meeting's original location... Defaulting to current device location.", Toast.LENGTH_LONG).show();
             usingDeviceLocation = true;
         }
     }

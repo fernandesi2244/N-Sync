@@ -7,7 +7,6 @@
     android:background="#FFFFFF"
     tools:context=".ProfileActivity">
 
-
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -139,7 +138,7 @@
                     android:id="@+id/signInToMeetingButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/sign_in_to_meeting_button_shape"
+                    android:background="@drawable/sign_in_to_meeting_button_selector"
                     android:onClick="signInToMeeting"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -154,7 +153,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
-                    android:background="@drawable/sign_in_to_meeting_button_shape"
+                    android:background="@drawable/sign_in_to_meeting_button_selector"
                     android:onClick="viewPastMeetings"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -187,7 +186,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="15dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="scheduleMeeting"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -200,7 +199,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="editExistingMeeting"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -213,7 +212,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="viewMeetingAttendance"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -226,7 +225,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="viewAllUsers"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -239,7 +238,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="changeMargins"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -252,7 +251,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="viewLog"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -265,7 +264,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="30dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="delAllPreviousMeetings"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -279,7 +278,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:background="@drawable/regular_button_shape"
+                    android:background="@drawable/regular_button_selector"
                     android:onClick="delAllMeetings"
                     android:shadowColor="#A8A8A8"
                     android:shadowDx="0"
@@ -295,7 +294,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
-                android:background="@drawable/unimportant_button"
+                android:background="@drawable/unimportant_button_selector"
                 android:onClick="logOut"
                 android:shadowColor="#A8A8A8"
                 android:shadowDx="0"
@@ -312,6 +311,5 @@
 
         </LinearLayout>
     </ScrollView>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

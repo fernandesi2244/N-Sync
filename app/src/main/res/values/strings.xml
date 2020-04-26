@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Thunderbird Meeting Tracker</string>
+    <string name="app_name">N-Sync</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Log in</string>
@@ -50,7 +50,7 @@
     <string name="delPreviousMeetingsLabel">Delete all previous meetings in memory</string>
     <string name="delAllMeetingsLabel">Delete all meetings in memory</string>
     <string name="viewPastMeetingsMessage">View past meetings</string>
-    <string name="viewMeetingAttendanceMessage">View meeting attendance</string>
+    <string name="viewMeetingAttendanceMessage">View Meeting Attendance</string>
     <string name="noUsersFoundForMeetingMessage">There are currently no users who have signed into this meeting.</string>
     <string name="viewLogMessage">View Log</string>
     <string name="changeMarginsMessage">Change Location/Time Margins</string>
@@ -61,6 +61,8 @@
     <string name="update">Update</string>
     <string name="meters_message">meters</string>
     <string name="minutes_message">minutes</string>
+    <string name="nextMeetingDisplayError">Something went wrong when retrieving the next meeting. Please try again later!</string>
+    <string name="menu_refresh">Refresh</string>
 
     <string-array name="departmentsArray">
         <item>Computer Science</item>

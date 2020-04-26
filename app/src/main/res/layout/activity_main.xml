@@ -59,11 +59,11 @@
             app:layout_constraintStart_toStartOf="parent"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:background="@drawable/log_in_button_shape"
+            android:background="@drawable/log_in_button_selector"
             android:shadowColor="#A8A8A8"
             android:shadowDx="0"
             android:shadowDy="0"
-            android:shadowRadius="5"
+            android:shadowRadius="0"
             android:layout_marginTop="30dp"/>
 
     </LinearLayout>
@@ -81,7 +81,7 @@
         android:textSize="14sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/unimportant_button"
+        android:background="@drawable/unimportant_button_selector"
         android:shadowColor="#A8A8A8"
         android:shadowDx="0"
         android:shadowDy="0"

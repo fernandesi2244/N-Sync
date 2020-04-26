@@ -100,7 +100,7 @@
             android:text="@string/createAccount"
             android:textColor="@color/lovelyWhite"
             android:textSize="18sp"
-            android:background="@drawable/log_in_button_shape"
+            android:background="@drawable/log_in_button_selector"
             android:shadowColor="#A8A8A8"
             android:shadowDx="0"
             android:shadowDy="0"

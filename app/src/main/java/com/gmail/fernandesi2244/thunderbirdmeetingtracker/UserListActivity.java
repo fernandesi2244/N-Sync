@@ -2,6 +2,7 @@ package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -29,7 +30,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-public class UserListActivity extends AppCompatActivity {
+public class UserListActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +38,8 @@ public class UserListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_list);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeToRefreshUserList);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         Intent receivedIntent = getIntent();
         String purpose = receivedIntent.getStringExtra("purpose");
@@ -169,6 +172,8 @@ public class UserListActivity extends AppCompatActivity {
     }
 
     private void displayMeetingsUserAttended(String objectId) {
+        //For some reason, this takes a few moments if the user has attended at least 1 meeting that has been deleted
+        Toast.makeText(getApplicationContext(), "Loading... May take a few moments.", Toast.LENGTH_LONG).show();
         Intent displayMeetings = new Intent(this, ViewAllMeetings.class);
         displayMeetings.putExtra("purpose", "READ-USER_SPECIFIC");
         displayMeetings.putExtra("userId", objectId);
@@ -178,5 +183,17 @@ public class UserListActivity extends AppCompatActivity {
     private void goBackToProfile() {
         Intent goToProfile = new Intent(this, ProfileActivity.class);
         startActivity(goToProfile);
+    }
+
+    @Override
+    public void onRefresh() {
+        refreshScreen();
+    }
+
+    private void refreshScreen() {
+        finish();
+        overridePendingTransition(0, 0);
+        startActivity(getIntent());
+        overridePendingTransition(0, 0);
     }
 }
