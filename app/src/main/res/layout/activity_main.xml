@@ -30,12 +30,12 @@
         app:layout_constraintTop_toBottomOf="@+id/wagnerLogo">
 
         <EditText
-            android:id="@+id/enterUsernameLogin"
+            android:id="@+id/enterEmailLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="@string/username"
-            android:inputType="textPersonName"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

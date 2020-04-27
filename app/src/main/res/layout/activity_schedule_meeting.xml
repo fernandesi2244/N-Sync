@@ -108,7 +108,7 @@
                 app:layout_constraintStart_toStartOf="parent" />
 
             <LinearLayout
-                android:id="@+id/horizontalLayout"
+                android:id="@+id/remoteMeetingLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="30dp"
@@ -125,10 +125,29 @@
                 <CheckBox
                     android:id="@+id/verifyWithLocCheckBox"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:checked="true"
                     android:onClick="onRemoteCheckboxClicked" />
+
+                <TextView
+                    android:id="@+id/chooseMeetingPasswordLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="30dp"
+                    android:text="@string/chooseMeetingPasswordMessage"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="22sp" />
+
+                <EditText
+                    android:id="@+id/chooseMeetingPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:hint="@string/chooseMeetingPasswordHint"
+                    android:inputType="text"
+                    android:autofillHints="password" />
+
             </LinearLayout>
 
 
@@ -140,7 +159,7 @@
                 android:text="@string/chooseLocationString"
                 android:textColor="@color/colorPrimary"
                 android:textSize="22sp"
-                app:layout_constraintTop_toBottomOf="@id/horizontalLayout" />
+                app:layout_constraintTop_toBottomOf="@id/remoteMeetingLayout" />
 
             <RadioGroup
                 android:id="@+id/locationRadioGroup"

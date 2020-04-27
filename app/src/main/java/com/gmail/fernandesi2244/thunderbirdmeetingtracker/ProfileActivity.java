@@ -211,10 +211,6 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
             if (!meetingIsRemote) {
                 nextMeetingLocation = nextMeeting.getParseGeoPoint("meetingLocation");
                 getAddressFromLocation(nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
-                /*String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
-                Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
-                meetingLocation.setText(durationSpannedLoc);*/
-
                 setMapLocation();
                 LinearLayout mapLayout = findViewById(R.id.mapLinLayout);
                 mapLayout.setVisibility(View.VISIBLE);
@@ -300,7 +296,7 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
             if (addresses.size() > 0) {
                 Address fetchedAddress = addresses.get(0);
-                StringBuilder strAddress = new StringBuilder(fetchedAddress.getAddressLine(0)+"("+fetchedAddress.getLocality()+")");
+                StringBuilder strAddress = new StringBuilder(fetchedAddress.getAddressLine(0));
 
                 String locHtml = String.format("<b>Approximate location used for attendance verification:</b> %s", strAddress);
                 Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
@@ -354,6 +350,9 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     public void logOut() {
         ParseUser.logOut();
         Toast.makeText(getApplicationContext(), "Come back soon!", Toast.LENGTH_LONG).show();
+        Intent forceLogInScreen = new Intent(this, MainActivity.class);
+        forceLogInScreen.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(forceLogInScreen);
         finish();
     }
 
@@ -394,11 +393,10 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                         try {
                             List<ParseObject> meetings = getAllPreviousMeetings.find();
                             ParseUser currentUser = ParseUser.getCurrentUser();
-                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has attempted to delete all previous meetings from memory.", "HIGH");
                             for (ParseObject current : meetings) {
                                 current.deleteEventually();
                             }
-                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all previous meetings from memory.", "HIGH");
+                            ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \"" + currentUser.getEmail() + "\" has deleted all previous meetings from memory.", "HIGH");
                             Toast.makeText(getApplicationContext(), "Successfully queued all previous meetings for deletion from memory.", Toast.LENGTH_LONG).show();
                             refreshScreen(); //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
                         } catch (ParseException e) {
@@ -430,11 +428,10 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                         try {
                             List<ParseObject> meetings = getAllMeetings.find();
                             ParseUser currentUser = ParseUser.getCurrentUser();
-                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has attempted to delete all meetings from memory.", "HIGH");
                             for (ParseObject current : meetings) {
                                 current.deleteEventually();
                             }
-                            ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has deleted all meetings from memory.", "HIGH");
+                            ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \"" + currentUser.getEmail() + "\" has deleted all meetings from memory.", "HIGH");
                             Toast.makeText(getApplicationContext(), "Successfully queued all meetings for deletion from memory.", Toast.LENGTH_LONG).show();
                             refreshScreen(); //Resets profile screen to reflect new changes (only updates if pressed a second time, because when pressed the first time, the deleteEventually() operation has not yet finished completely)
                         } catch (ParseException e) {

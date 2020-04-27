@@ -26,13 +26,13 @@
             android:autofillHints="" />
 
         <EditText
-            android:id="@+id/signInUsername"
+            android:id="@+id/signInEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="@string/username"
-            android:inputType="textPersonName"
-            android:autofillHints="" />
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
+            android:autofillHints="@string/email" />
 
         <EditText
             android:id="@+id/signInPassword"

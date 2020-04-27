@@ -45,7 +45,6 @@ import java.util.List;
 
 public class MeetingSignInActivity extends AppCompatActivity {
 
-    public static final String MeetingSignInActivityID = "MeetingSignInActivity";
     public static final int MILLISECONDS_PER_MINUTE = 60_000;
 
     private static long marginInMinutes;
@@ -54,7 +53,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
     private Location currentLoc;
     private ParseObject clickedMeeting;
     private float locationMargin;
-    private boolean userLate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +109,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
             //Perhaps the user is zooming through the app without giving the app enough time to load.
             Toast.makeText(getApplicationContext(), "Something wrong happened... Please try again later!", Toast.LENGTH_LONG).show();
             goToProfile();
+            finish();
         }
         String[] acceptableDepartments = {"General", "general", currentUser.getString("department")};
 
@@ -126,7 +126,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
             for (ParseObject current : meetings) {
                 Button nextButton = new Button(this);
                 nextButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                nextButton.setGravity(Gravity.LEFT);
+                nextButton.setGravity(Gravity.START);
 
                 String meetingDescription = current.getString("meetingDescription");
                 Date nextMeetingDate = current.getDate("meetingDate");
@@ -141,30 +141,12 @@ public class MeetingSignInActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         Button clickedButton = (Button) v;
                         String btnText = clickedButton.getText().toString();
-                        String objectId = btnText.split("ID: ")[1];
-
-                        ParseQuery<ParseObject> getMeeting = ParseQuery.getQuery("Meeting");
-                        getMeeting.whereEqualTo("objectId", objectId);
-                        getMeeting.findInBackground(new FindCallback<ParseObject>() {
-                            @Override
-                            public void done(List<ParseObject> objects, ParseException e) {
-                                if (e == null) {
-                                    if (objects.size() == 1) {
-                                        clickedMeeting = objects.get(0);
-                                        verifyMeetingAttendance();
-                                    } else {
-                                        Toast.makeText(getApplicationContext(), "Something went wrong when accessing the desired meeting. Please try again!", Toast.LENGTH_LONG).show();
-                                    }
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "Something went wrong when accessing the desired meeting. Please try again!", Toast.LENGTH_LONG).show();
-                                }
-                            }
-                        });
+                        String meetingId = btnText.split("ID: ")[1];
+                        displayMeetingDetails(meetingId);
                     }
                 });
 
                 meetingsLayout.addView(nextButton);
-
             }
 
         } catch (Exception e) {
@@ -178,213 +160,10 @@ public class MeetingSignInActivity extends AppCompatActivity {
         }
     }
 
-    protected void checkPermissions() {
-        if (!hasLocationPermissions()) {
-            Intent goToRequestPage = new Intent(this, RequestPermissionsActivity.class);
-            goToRequestPage.putExtra("sender", MeetingSignInActivityID);
-            startActivity(goToRequestPage);
-        }
-    }
-
-    private boolean hasLocationPermissions() {
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            //All good; user may proceed
-            return true;
-        } else {
-            //User needs to be redirected to permissions activity
-            return false;
-        }
-    }
-
-    private void getDeviceLocation() {
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        try {
-            Task locationResult = mFusedLocationProviderClient.getLastLocation();
-            locationResult.addOnCompleteListener(this, new OnCompleteListener() {
-                @Override
-                public void onComplete(@NonNull Task task) {
-                    if (task.isSuccessful()) {
-                        currentLoc = (Location) task.getResult();
-                    }
-                    resumeVerificationProcessForDeviceLocation();
-                }
-            });
-        } catch (
-                SecurityException e) {
-            return;
-        }
-    }
-
-    private void verifyMeetingAttendance() {
-        boolean isRemote = clickedMeeting.getBoolean("isRemote");
-
-        ParseQuery<ParseObject> getMargin = ParseQuery.getQuery("MeetingAttendanceMarginOfError");
-        getMargin.whereEqualTo("objectId", "ZCHh4cadL1");
-        try {
-            List<ParseObject> parseObjects = getMargin.find();
-            if (parseObjects.size() > 0) {
-                marginInMinutes = parseObjects.get(0).getNumber("marginInMinutes").longValue();
-            } else {
-                Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-                return;
-            }
-        } catch (ParseException e) {
-            Toast.makeText(getApplicationContext(), "Error: Meeting attendance time margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        long marginInMilliseconds = marginInMinutes * MILLISECONDS_PER_MINUTE;
-        Date meetingDate = clickedMeeting.getDate("meetingDate");
-
-        Date currentDate = new Date();
-        Date beforeDate = new Date();
-        beforeDate.setTime(meetingDate.getTime() - marginInMilliseconds);
-        Date afterDate = new Date();
-        afterDate.setTime(meetingDate.getTime() + marginInMilliseconds);
-
-        boolean timingIsGood = false;
-
-        if (currentDate.getTime() >= beforeDate.getTime()) {
-            timingIsGood = true;
-        }
-
-        userLate = currentDate.getTime() > afterDate.getTime();
-
-        ParseUser currentUser = ParseUser.getCurrentUser();
-
-        if (isRemote) {
-            if (timingIsGood) {
-                ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>) currentUser.get("meetingsAttended");
-
-                if (meetingsAttendedByUser == null) {
-                    Toast.makeText(getApplicationContext(), "Something went wrong during online retrieval of data. Please try again later!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                //Check if user already signed into the meeting
-                for (ParseObject mtng : meetingsAttendedByUser) {
-                    if (mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
-                        Toast.makeText(getApplicationContext(), "You already signed into this meeting!", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                }
-
-                meetingsAttendedByUser.add(clickedMeeting);
-
-                currentUser.put("meetingsAttended", meetingsAttendedByUser);
-                currentUser.put("noMeetingsAttended", currentUser.getLong("noMeetingsAttended") + 1);
-
-                currentUser.saveEventually();
-
-                ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
-                meetingUsers.add(currentUser);
-                clickedMeeting.put("usersThatAttended", meetingUsers);
-
-                if (userLate) {
-                    ArrayList<ParseUser> lateMeetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttendedLate");
-                    lateMeetingUsers.add(currentUser);
-                    clickedMeeting.put("usersThatAttendedLate", lateMeetingUsers);
-                }
-
-                clickedMeeting.saveEventually();
-
-                if (userLate)
-                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting late!", Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting on time!", Toast.LENGTH_LONG).show();
-                goToProfile();
-            } else {
-                Toast.makeText(getApplicationContext(), "Sorry, but you are too early to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
-            }
-        } else {
-            if (!hasLocationPermissions()) {
-                checkPermissions();
-            } else {
-                if (timingIsGood) {
-                    getDeviceLocation();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Sorry, but you are too early to check into the meeting. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
-                }
-            }
-        }
-    }
-
-    private void resumeVerificationProcessForDeviceLocation() {
-        if (currentLoc == null) {
-            Toast.makeText(getApplicationContext(), "Could not retrieve phone's location. Please try again!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        try {
-            ParseGeoPoint meetingLocInParse = clickedMeeting.getParseGeoPoint("meetingLocation");
-            Location meetingLoc = new Location("");
-            meetingLoc.setLatitude(meetingLocInParse.getLatitude());
-            meetingLoc.setLongitude(meetingLocInParse.getLongitude());
-
-            ParseQuery<ParseObject> getMargin = ParseQuery.getQuery("LocationMargin");
-            getMargin.whereEqualTo("objectId", "s5qyTqdbHY");
-            try {
-                List<ParseObject> parseObjects = getMargin.find();
-                if (parseObjects.size() > 0) {
-                    locationMargin = parseObjects.get(0).getNumber("locationMarginInMeters").floatValue();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Error: Meeting location margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-                    return;
-                }
-            } catch (ParseException e) {
-                Toast.makeText(getApplicationContext(), "Error: Meeting location margin retrieval failed. Please try again later.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            ParseUser currentUser = ParseUser.getCurrentUser();
-
-            float actualDistance = currentLoc.distanceTo(meetingLoc);
-            if (actualDistance < locationMargin) {
-                ArrayList<ParseObject> meetingsAttendedByUser = (ArrayList<ParseObject>) currentUser.get("meetingsAttended");
-
-                if (meetingsAttendedByUser == null) {
-                    Toast.makeText(getApplicationContext(), "Something went wrong during online retrieval of data. Please try again later!", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                //Check if user already signed into the meeting
-                for (ParseObject mtng : meetingsAttendedByUser) {
-                    if (mtng.getObjectId().equals(clickedMeeting.getObjectId())) {
-                        Toast.makeText(getApplicationContext(), "You already signed into this meeting!", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                }
-
-                meetingsAttendedByUser.add(clickedMeeting);
-
-                currentUser.put("meetingsAttended", meetingsAttendedByUser);
-                currentUser.put("noMeetingsAttended", currentUser.getLong("noMeetingsAttended") + 1);
-
-                currentUser.saveEventually();
-
-                ArrayList<ParseUser> meetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttended");
-                meetingUsers.add(currentUser);
-                clickedMeeting.put("usersThatAttended", meetingUsers);
-
-                if (userLate) {
-                    ArrayList<ParseUser> lateMeetingUsers = (ArrayList<ParseUser>) clickedMeeting.get("usersThatAttendedLate");
-                    lateMeetingUsers.add(currentUser);
-                    clickedMeeting.put("usersThatAttendedLate", lateMeetingUsers);
-                }
-
-                clickedMeeting.saveEventually();
-
-                if (userLate)
-                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting late!", Toast.LENGTH_LONG).show();
-                else
-                    Toast.makeText(getApplicationContext(), "You successfully signed into the meeting on time!", Toast.LENGTH_LONG).show();
-                goToProfile();
-            } else {
-                Toast.makeText(getApplicationContext(), "Sorry, but you are not close enough to the meeting location to confirm your presence. Please contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
-            }
-        } catch(Exception loc_e) {
-            Toast.makeText(getApplicationContext(), "Something went wrong while verifying your location. Please try again later or contact an administrator if this is a concern.", Toast.LENGTH_LONG).show();
-        }
+    private void displayMeetingDetails(String meetingId) {
+        Intent displayMeeting = new Intent(this, DisplayMeetingActivity.class);
+        displayMeeting.putExtra("meetingId", meetingId);
+        startActivity(displayMeeting);
     }
 
     private void goToProfile() {

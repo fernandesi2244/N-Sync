@@ -94,7 +94,19 @@ public class LogActivity extends AppCompatActivity implements AdapterView.OnItem
         listview.setAdapter(adapter);
 
         if (logs.size() == 0) {
-            Toast.makeText(getApplicationContext(), "There are currently no logs in memory.", Toast.LENGTH_LONG).show();
+            switch(severity) {
+                case "LOW":
+                    Toast.makeText(getApplicationContext(), "There are currently no low-priority logs in memory.", Toast.LENGTH_LONG).show();
+                    break;
+                case "MEDIUM":
+                    Toast.makeText(getApplicationContext(), "There are currently no medium-priority logs in memory.", Toast.LENGTH_LONG).show();
+                    break;
+                case "HIGH":
+                    Toast.makeText(getApplicationContext(), "There are currently no high-priority logs in memory.", Toast.LENGTH_LONG).show();
+                    break;
+                default:
+                    Toast.makeText(getApplicationContext(), "There are currently no logs in memory.", Toast.LENGTH_LONG).show();
+            }
         }
     }
 

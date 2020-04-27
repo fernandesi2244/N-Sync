@@ -86,8 +86,8 @@ public class RequestPermissionsActivity extends AppCompatActivity {
             case ScheduleMeetingActivity.ScheduleMeetingActivityID:
                 goBack = new Intent(this, ScheduleMeetingActivity.class);
                 break;
-            case MeetingSignInActivity.MeetingSignInActivityID:
-                goBack = new Intent(this, MeetingSignInActivity.class);
+            case DisplayMeetingActivity.DisplayMeetingActivityID:
+                goBack = new Intent(this, DisplayMeetingActivity.class);
                 break;
             default:
                 goBack = new Intent(this, ProfileActivity.class);

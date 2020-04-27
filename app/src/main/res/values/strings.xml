@@ -25,7 +25,7 @@
     <string name="editMeeting">Edit Existing Meeting</string>
     <string name="scheduleLabelString">Meeting Scheduler</string>
     <string name="chooseDateString">Choose a Date</string>
-    <string name="chooseRemoteString">Verify attendance based on location?</string>
+    <string name="chooseRemoteString">Verify Attendance Based on Location?</string>
     <string name="chooseLocationString">Choose a Location</string>
     <string name="useDeviceLocation">Current Device Location</string>
     <string name="submitMessage">Submit</string>
@@ -35,7 +35,7 @@
     <string name="enterDescriptionText">Purpose, location, objectives, mandatory?, etc.)</string>
     <string name="chooseAudienceString">Who is this Meeting for?</string>
     <string name="noMeetingsScheduledMessage">Currently, there are no meetings scheduled.</string>
-    <string name="signInToMeetingMessage">Sign in to Meeting</string>
+    <string name="signInToMeetingMessage">Sign into Meeting</string>
     <string name="meetingSignInMessage">Choose a Meeting to Sign Into</string>
     <string name="locationRemoteMessage"><b>Location Verification:</b> Not checked for attendance verification</string>
     <string name="viewAllUsers">View All Users</string>
@@ -63,6 +63,12 @@
     <string name="minutes_message">minutes</string>
     <string name="nextMeetingDisplayError">Something went wrong when retrieving the next meeting. Please try again later!</string>
     <string name="menu_refresh">Refresh</string>
+    <string name="chooseMeetingPasswordMessage">Choose a Meeting Password or Leave this Blank if not Password-Restricted</string>
+    <string name="chooseMeetingPasswordHint">Choose a meeting password</string>
+    <string name="meetingDisplayMessage">Sign into Meeting</string>
+    <string name="enterPassword">Enter Meeting Password</string>
+    <string name="enterMeetingPasswordHint">Enter password here</string>
+    <string name="email">Email</string>
 
     <string-array name="departmentsArray">
         <item>Computer Science</item>

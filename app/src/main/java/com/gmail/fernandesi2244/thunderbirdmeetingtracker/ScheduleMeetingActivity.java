@@ -66,6 +66,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     private boolean verifyWithLocChecked, usingDeviceLocation, usingExistingLocation;
     private String audience, meetingID;
     private final int idGenerated = 314159265;
+    private String tempId;
 
     private ParseGeoPoint locIfUsingExistingLocation;
 
@@ -190,6 +191,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
         TextView chooseLocationLabel = findViewById(R.id.chooseLocationLabel);
         RadioGroup locRadiogroup = findViewById(R.id.locationRadioGroup);
+        TextView meetingPasswordLabel = findViewById(R.id.chooseMeetingPasswordLabel);
+        EditText meetingPasswordEditText = findViewById(R.id.chooseMeetingPassword);
 
         if (verifyWithLocChecked) {
             chooseLocationLabel.setVisibility(View.VISIBLE);
@@ -197,12 +200,24 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
             locRadiogroup.setVisibility(View.VISIBLE);
             locRadiogroup.startAnimation(fadeIn);
+
+            meetingPasswordLabel.clearAnimation();
+            meetingPasswordLabel.setVisibility(View.GONE);
+
+            meetingPasswordEditText.clearAnimation();
+            meetingPasswordEditText.setVisibility(View.GONE);
         } else {
             chooseLocationLabel.clearAnimation();
             chooseLocationLabel.setVisibility(View.GONE);
 
             locRadiogroup.clearAnimation();
             locRadiogroup.setVisibility(View.GONE);
+
+            meetingPasswordLabel.setVisibility(View.VISIBLE);
+            meetingPasswordLabel.startAnimation(fadeIn);
+
+            meetingPasswordEditText.setVisibility(View.VISIBLE);
+            meetingPasswordEditText.startAnimation(fadeIn);
         }
     }
 
@@ -296,6 +311,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             return;
         }
         ParseObject meeting = new ParseObject("Meeting");
+        tempId = meeting.getObjectId();
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
         if (!verifyWithLocChecked) {
@@ -316,8 +332,12 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         }
         EditText meetingDescription = findViewById(R.id.chooseDescription);
         String meetingDescriptionText = meetingDescription.getText().toString();
+        EditText meetingPassword = findViewById(R.id.chooseMeetingPassword);
+        String meetingPasswordText = meetingPassword.getText().toString();
+
         meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
         meeting.put("audience", audience.isEmpty() ? "General" : audience);
+        meeting.put("meetingPassword", meetingPasswordText.isEmpty() ? "none" : meetingPasswordText);
 
         meeting.saveInBackground(new SaveCallback() {
             @Override
@@ -325,7 +345,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has scheduled a meeting.", "MEDIUM");
+                    ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has scheduled a meeting with ID: "+tempId+".", "MEDIUM");
                     Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
@@ -338,6 +358,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
     private void resumeSubmitRequestWithDeviceLocation() {
         ParseObject meeting = new ParseObject("Meeting");
+        tempId = meeting.getObjectId();
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
         meeting.put("isRemote", false);
@@ -352,9 +373,12 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
         EditText meetingDescription = findViewById(R.id.chooseDescription);
         String meetingDescriptionText = meetingDescription.getText().toString();
-        meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
+        EditText meetingPassword = findViewById(R.id.chooseMeetingPassword);
+        String meetingPasswordText = meetingPassword.getText().toString();
 
+        meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
         meeting.put("audience", audience.isEmpty() ? "General" : audience);
+        meeting.put("meetingPassword", meetingPasswordText.isEmpty() ? "none" : meetingPasswordText);
 
         meeting.saveInBackground(new SaveCallback() {
             @Override
@@ -362,7 +386,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has scheduled a meeting.", "MEDIUM");
+                    ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has scheduled a meeting with ID: "+tempId+".", "MEDIUM");
                     Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
@@ -421,8 +445,12 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         }
         EditText meetingDescription = findViewById(R.id.chooseDescription);
         String meetingDescriptionText = meetingDescription.getText().toString();
+        EditText meetingPassword = findViewById(R.id.chooseMeetingPassword);
+        String meetingPasswordText = meetingPassword.getText().toString();
+
         meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
         meeting.put("audience", audience.isEmpty() ? "General" : audience);
+        meeting.put("meetingPassword", meetingPasswordText.isEmpty() ? "none" : meetingPasswordText);
 
         meeting.saveInBackground(new SaveCallback() {
             @Override
@@ -431,12 +459,11 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
                     boolean good = true;
-                    if (currentUser == null) {
-                        finish();
+                    if (currentUser == null)
                         good = false;
-                    }
+
                     if (good) {
-                        ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
+                        ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
                         Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
                     }
                     goBackToProfile();
@@ -465,11 +492,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             } else {
                 throw new Exception();
             }
-        } catch (ParseException e) {
-            Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting information.", Toast.LENGTH_LONG).show();
-            goBackToProfile();
-            return;
-        } catch (Exception e2) {
+        } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Something went wrong when retrieving the meeting information.", Toast.LENGTH_LONG).show();
             goBackToProfile();
             return;
@@ -489,9 +512,12 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
 
         EditText meetingDescription = findViewById(R.id.chooseDescription);
         String meetingDescriptionText = meetingDescription.getText().toString();
-        meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
+        EditText meetingPassword = findViewById(R.id.chooseMeetingPassword);
+        String meetingPasswordText = meetingPassword.getText().toString();
 
+        meeting.put("meetingDescription", meetingDescriptionText.isEmpty() ? "None" : meetingDescriptionText);
         meeting.put("audience", audience.isEmpty() ? "General" : audience);
+        meeting.put("meetingPassword", meetingPasswordText.isEmpty() ? "none" : meetingPasswordText);
 
         meeting.saveInBackground(new SaveCallback() {
             @Override
@@ -499,8 +525,14 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    ParseLogger.log("User \"" + currentUser.getUsername() + "\" with name \"" + currentUser.get("name") + "\" has updated a meeting.", "LOW");
-                    Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
+                    boolean good = true;
+                    if (currentUser == null)
+                        good = false;
+
+                    if (good) {
+                        ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
+                        Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
+                    }
                     goBackToProfile();
                 } else {
                     // Error
@@ -570,6 +602,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         verifyWithLocCheckBox.setChecked(!meetingIsRemote);
         onRemoteCheckboxClicked(verifyWithLocCheckBox);
         RadioGroup locationRadioGroup = findViewById(R.id.locationRadioGroup);
+        String meetingPassword = meeting.getString("meetingPassword");
+        EditText meetingPasswordEditText = findViewById(R.id.chooseMeetingPassword);
         try {
             if (!meetingIsRemote) {
                 locIfUsingExistingLocation = meeting.getParseGeoPoint("meetingLocation");
@@ -589,7 +623,10 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                     }
                 });
             } else {
-                usingDeviceLocation = true;
+                if(!meetingPassword.equalsIgnoreCase("none")) {
+                    meetingPasswordEditText.setText(meetingPassword);
+                }
+                usingDeviceLocation = true; //if user switches to non-remote meeting
             }
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Could not find meeting's original location... Defaulting to current device location.", Toast.LENGTH_LONG).show();

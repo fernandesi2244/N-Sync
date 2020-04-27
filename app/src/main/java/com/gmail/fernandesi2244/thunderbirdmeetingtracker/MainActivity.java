@@ -59,10 +59,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void logIn(View view) {
-        EditText username = (EditText) (findViewById(R.id.enterUsernameLogin));
-        EditText password = (EditText) (findViewById(R.id.enterPasswordLogin));
+        EditText email = findViewById(R.id.enterEmailLogin);
+        EditText password = findViewById(R.id.enterPasswordLogin);
 
-        ParseUser.logInInBackground(username.getText().toString(), password.getText().toString(), new LogInCallback() {
+        ParseUser.logInInBackground(email.getText().toString(), password.getText().toString(), new LogInCallback() {
             @Override
             public void done(ParseUser parseUser, ParseException e) {
                 if (parseUser != null) {
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void editTextAnimations() {
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
-        EditText username = findViewById(R.id.enterUsernameLogin);
+        EditText username = findViewById(R.id.enterEmailLogin);
         EditText password = findViewById(R.id.enterPasswordLogin);
         username.startAnimation(fadeIn);
         password.startAnimation(fadeIn);

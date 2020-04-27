@@ -3,6 +3,8 @@ package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -88,7 +90,7 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in);
 
         EditText userAdminPass = findViewById(R.id.signInAdminPass);
-        if(checked) {
+        if (checked) {
             userAdminPass.setVisibility(View.VISIBLE);
             userAdminPass.startAnimation(fadeIn);
         } else {
@@ -101,21 +103,27 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
         ParseUser user = new ParseUser();
         // Set the user's general account info
         final EditText name = findViewById(R.id.signInName);
-        EditText username = findViewById(R.id.signInUsername);
+        EditText email = findViewById(R.id.signInEmail);
         EditText password = findViewById(R.id.signInPassword);
         EditText passwordConfirm = findViewById(R.id.signInConfirmPassword);
         EditText adminPass = findViewById(R.id.signInAdminPass);
 
         //Make sure all fields are filled in
         if (name.getText().toString().isEmpty() ||
-            username.getText().toString().isEmpty() ||
-            password.getText().toString().isEmpty() ||
-            passwordConfirm.getText().toString().isEmpty() ||
-            department.isEmpty()) {
+                email.getText().toString().isEmpty() ||
+                password.getText().toString().isEmpty() ||
+                passwordConfirm.getText().toString().isEmpty() ||
+                department.isEmpty()) {
 
-                Toast.makeText(getApplicationContext(), "Make sure all fields are filled in and try again!", Toast.LENGTH_LONG).show();
-                return;
+            Toast.makeText(getApplicationContext(), "Make sure all fields are filled in and try again!", Toast.LENGTH_LONG).show();
+            return;
 
+        }
+
+        // Ensure email address is valid according to RFC 5322
+        if (!email.getText().toString().matches("^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {
+            Toast.makeText(getApplicationContext(), "Please enter a valid email address!", Toast.LENGTH_LONG).show();
+            return;
         }
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("AdminPass");
@@ -132,36 +140,45 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
             }
         });
 
-        if(isAdmin&&!adminPass.getText().toString().equals(ADMIN_PASS)) {
+        if (isAdmin && !adminPass.getText().toString().equals(ADMIN_PASS)) {
             Toast.makeText(getApplicationContext(), "Admin passphrase is incorrect! Please try again.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        if(password.getText().toString().equals(passwordConfirm.getText().toString())) {
-            final String USERNAME_STRING = username.getText().toString();
-            user.setUsername(USERNAME_STRING);
+        if (password.getText().toString().equals(passwordConfirm.getText().toString())) {
+            String emailString = email.getText().toString().trim();
+            user.setUsername(emailString);
+            user.setEmail(emailString);
             user.setPassword(password.getText().toString());
+
+            user.put("name", titleCase(name.getText().toString()).trim());
+            user.put("department", department);
+            user.put("noMeetingsAttended", 0L);
+            user.put("meetingsAttended", new ArrayList<ParseObject>());
+            user.put("isAdmin", isAdmin);
 
             user.signUpInBackground(new SignUpCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
-                        Toast.makeText(getApplicationContext(), "Successful Sign Up! Welcome "+titleCase(name.getText().toString())+"!", Toast.LENGTH_LONG).show();
-                        ParseUser currentUser = ParseUser.getCurrentUser();
+                        //Toast.makeText(getApplicationContext(), "Successful Sign Up! Welcome "+titleCase(name.getText().toString())+"!", Toast.LENGTH_LONG).show();
+                        //ParseUser currentUser = ParseUser.getCurrentUser();
                         //////////////////////////////////////////////////////////////////////////////////
-                        currentUser.put("name", titleCase(name.getText().toString()));
-                        currentUser.put("department", department);
-                        currentUser.put("noMeetingsAttended", 0L);
-                        currentUser.put("meetingsAttended", new ArrayList<ParseObject>());
-                        if(isAdmin)
-                            currentUser.put("isAdmin", true);
-                        else
-                            currentUser.put("isAdmin", false);
 
-                        currentUser.saveInBackground();
-                        //////////////////////////////////////////////////////////////////////////////////
-                        Intent myIntent = new Intent(SignInActivity.this, ProfileActivity.class);
-                        startActivity(myIntent);
+                        ParseUser.logOut();
+                        alertDisplayer("Account created successfully!", "Please verify your email before logging in.", false);
+                        /*boolean successful = true;
+                        try {
+                            currentUser.save();
+                        } catch (Exception e2) {
+                            successful = false;
+                        }
+                        ParseUser.logOut();
+                        if (successful)
+                            alertDisplayer("Account created successfully!", "Please verify your email before logging in.", false);
+                        else
+                            alertDisplayer("Account created unsuccessfully.", "Something went wrong when creating your account. Please contact an administrator to resolve this issue. After contacting an admin, please verify your email before logging in.", false);
+                        */
                     } else {
                         ParseUser.logOut();
                         Toast.makeText(SignInActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -176,10 +193,31 @@ public class SignInActivity extends AppCompatActivity implements OnItemSelectedL
     private String titleCase(String input) {
         String[] words = input.split("\\s+");
         String newString = "";
-        for(String word: words) {
-            String temp = Character.toUpperCase(word.charAt(0))+word.substring(1).toLowerCase();
-            newString+=temp+" ";
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                String temp = Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase();
+                newString += temp + " ";
+            }
         }
         return newString.trim();
+    }
+
+    private void alertDisplayer(String title, String message, final boolean error) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(SignInActivity.this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                        if (!error) {
+                            Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
+                    }
+                });
+        AlertDialog ok = builder.create();
+        ok.show();
     }
 }
