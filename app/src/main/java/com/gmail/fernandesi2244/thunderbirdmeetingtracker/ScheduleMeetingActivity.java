@@ -306,12 +306,19 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     }
 
     public void submitMeeting(View view) {
+        // Rare instance where user may be not be logged in but still has access to this screen (this bug may be fixed)
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if(currentUser == null) {
+            Toast.makeText(getApplicationContext(), "The app may have had connection issues. Attempting to shut down app. Please restart the app if this does not work!", Toast.LENGTH_LONG).show();
+            finishAffinity();
+            return;
+        }
+
         if (meetingID != null && !meetingID.equals("NONE")) {
             updateMeeting();
             return;
         }
-        ParseObject meeting = new ParseObject("Meeting");
-        tempId = meeting.getObjectId();
+        final ParseObject meeting = new ParseObject("Meeting");
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
         if (!verifyWithLocChecked) {
@@ -345,6 +352,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
+                    tempId = meeting.getObjectId();
                     ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has scheduled a meeting with ID: "+tempId+".", "MEDIUM");
                     Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
@@ -357,8 +365,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
     }
 
     private void resumeSubmitRequestWithDeviceLocation() {
-        ParseObject meeting = new ParseObject("Meeting");
-        tempId = meeting.getObjectId();
+        final ParseObject meeting = new ParseObject("Meeting");
         GregorianCalendar dateToLoad = new GregorianCalendar(year, month, dayOfMonth, hour, minute);
         meeting.put("meetingDate", dateToLoad.getTime());
         meeting.put("isRemote", false);
@@ -386,6 +393,7 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
+                    tempId = meeting.getObjectId();
                     ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has scheduled a meeting with ID: "+tempId+".", "MEDIUM");
                     Toast.makeText(getApplicationContext(), "New meeting successfully created!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
@@ -458,14 +466,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    boolean good = true;
-                    if (currentUser == null)
-                        good = false;
-
-                    if (good) {
-                        ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
-                        Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
-                    }
+                    ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
+                    Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
                     // Error
@@ -525,14 +527,8 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
                 if (e == null) {
                     // Success
                     ParseUser currentUser = ParseUser.getCurrentUser();
-                    boolean good = true;
-                    if (currentUser == null)
-                        good = false;
-
-                    if (good) {
-                        ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
-                        Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
-                    }
+                    ParseLogger.log("User \"" + currentUser.get("name") + "\" with email \""+currentUser.getEmail()+"\" has updated a meeting with ID: "+meetingID+".", "LOW");
+                    Toast.makeText(getApplicationContext(), "The meeting was successfully updated!", Toast.LENGTH_LONG).show();
                     goBackToProfile();
                 } else {
                     // Error
@@ -575,7 +571,6 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
             goBackToProfile();
             return;
         }
-
 
         //Set up visual components
         EditText meetingDescription = findViewById(R.id.chooseDescription);
@@ -638,6 +633,14 @@ public class ScheduleMeetingActivity extends AppCompatActivity implements Adapte
         if (meetingID == null) {
             Toast.makeText(getApplicationContext(), "Something went wrong... Please try again later!", Toast.LENGTH_LONG).show();
             goBackToProfile();
+            return;
+        }
+
+        // Rare instance where user may be not be logged in but still has access to this screen (this bug may be fixed)
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if(currentUser == null) {
+            Toast.makeText(getApplicationContext(), "The app may have had connection issues. Attempting to shut down app. Please restart the app if this does not work!", Toast.LENGTH_LONG).show();
+            finishAffinity();
             return;
         }
 

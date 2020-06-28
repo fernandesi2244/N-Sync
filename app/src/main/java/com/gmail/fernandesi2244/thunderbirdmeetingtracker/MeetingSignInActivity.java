@@ -1,13 +1,6 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.text.Html;
@@ -23,22 +16,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.parse.FindCallback;
-import com.parse.GetCallback;
-import com.parse.ParseException;
-import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -46,14 +33,6 @@ import java.util.List;
 public class MeetingSignInActivity extends AppCompatActivity {
 
     public static final int MILLISECONDS_PER_MINUTE = 60_000;
-
-    private static long marginInMinutes;
-
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Location currentLoc;
-    private ParseObject clickedMeeting;
-    private float locationMargin;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +42,21 @@ public class MeetingSignInActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
     }
 
+    /**
+     * Whenever user resumes this activity, make sure to update the meetings list.
+     */
     @Override
     public void onResume() {
         super.onResume();
         setUpMeetingsList();
     }
 
+    /**
+     * Used to set up refresh button.
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -77,6 +65,12 @@ public class MeetingSignInActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Determine whether the user wanted to go back to the previous screen or refresh the existing screen.
+     *
+     * @param item the item selected from the bar at the top of the app's screen
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -92,10 +86,17 @@ public class MeetingSignInActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the meeting list to choose a meeting to sign in to.
+     */
     private void setUpMeetingsList() {
+        if(userIsNull())
+            return;
+
         LinearLayout meetingsLayout = findViewById(R.id.meetingsLayout);
         meetingsLayout.removeAllViews();
 
+        // Only show meetings that are at least as recent as 24 hours ago
         long marginInMilliseconds = 24 * 60 * MILLISECONDS_PER_MINUTE; //milliseconds in a day
         Date earliestDate = new Date();
         earliestDate.setTime(new Date().getTime() - marginInMilliseconds);
@@ -111,6 +112,8 @@ public class MeetingSignInActivity extends AppCompatActivity {
             goToProfile();
             finish();
         }
+
+        // Only display meetings that are for the user (not for a different department)
         String[] acceptableDepartments = {"General", "general", currentUser.getString("department")};
 
         ParseQuery<ParseObject> findEligibleMeetings = ParseQuery.getQuery("Meeting");
@@ -123,6 +126,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
             if (meetings.size() == 0)
                 throw new Exception("failed");
 
+            // Adds button for each meeting available
             for (ParseObject current : meetings) {
                 Button nextButton = new Button(this);
                 nextButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -150,6 +154,7 @@ public class MeetingSignInActivity extends AppCompatActivity {
             }
 
         } catch (Exception e) {
+            // No meetings available; display appropriate message
             TextView noMeetingsTextView = new TextView(this);
             noMeetingsTextView.setGravity(Gravity.CENTER);
             noMeetingsTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
@@ -160,21 +165,54 @@ public class MeetingSignInActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Go to screen to sign into the meeting that was selected.
+     *
+     * @param meetingId
+     */
     private void displayMeetingDetails(String meetingId) {
+        if(userIsNull())
+            return;
+
         Intent displayMeeting = new Intent(this, DisplayMeetingActivity.class);
         displayMeeting.putExtra("meetingId", meetingId);
         startActivity(displayMeeting);
     }
 
+    /**
+     * Go back to the profile screen.
+     */
     private void goToProfile() {
+        if(userIsNull())
+            return;
+
         Intent goToProfile = new Intent(this, ProfileActivity.class);
         startActivity(goToProfile);
     }
 
+    /**
+     * Refresh the list of available meetings.
+     */
     private void refreshScreen() {
         finish();
         overridePendingTransition(0, 0);
         startActivity(getIntent());
         overridePendingTransition(0, 0);
+    }
+
+    /**
+     * Check for rare instance when user may be not be logged in but still has access to this screen (this bug may have already been fixed by the time you see this).
+     * If the current user is null, finish() all activities.
+     *
+     * @return whether current user is null
+     */
+    private boolean userIsNull() {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(getApplicationContext(), "The app may have had connection issues. Attempting to shut down app. Please restart the app if this does not work!", Toast.LENGTH_LONG).show();
+            finishAffinity();
+            return true;
+        }
+        return false;
     }
 }

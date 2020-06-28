@@ -1,24 +1,12 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.Html;
-import android.text.Layout;
 import android.text.Spanned;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,10 +15,12 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,21 +28,17 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.parse.GetCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class ProfileActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -75,6 +61,12 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         hideAdminContent();
     }
 
+    /**
+     * Used to set up refresh button.
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -83,14 +75,21 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Determine whether the user wanted to go back to the previous screen or refresh the existing screen.
+     *
+     * @param item the item selected from the bar at the top of the app's screen
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                // app icon in action bar clicked; go to parent activity.
+                // User wants to go back to the previous screen. In this case, the previous screen is the log in page, so log the user out.
                 logOut();
                 return true;
             case R.id.menu_refresh:
+                // User wants to refresh the page
                 refreshScreen();
                 return true;
             default:
@@ -98,6 +97,9 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Initially hide the administrator options from the user so that a normal user cannot mess with them.
+     */
     public void hideAdminContent() {
         TextView adminLabel = findViewById(R.id.adminOptionsLabel);
         Button scheduleButton = findViewById(R.id.scheduleMeetingButton);
@@ -121,13 +123,14 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
 
+    /**
+     * Load the user's profile from the server onto the screen.
+     */
     public void populateUserInfo() {
         ParseUser currentUser = ParseUser.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(getApplicationContext(), "The app may have had connection issues. Please try starting the app again!", Toast.LENGTH_LONG).show();
-            finish();
+
+        if(userIsNull())
             return;
-        }
 
         String name = currentUser.getString("name");
         String department = currentUser.getString("department");
@@ -135,11 +138,11 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         try {
             noMeetings = currentUser.getLong("noMeetingsAttended");
         } catch (Exception e) {
-            //This guy must have attended QUINTILLIONS of meetings :)
-            //In this case, don't do anything (it may also be some retrieval error).
+            // This guy must have attended QUINTILLIONS of meetings :)
+            // In this case, don't do anything (it may also be some retrieval error).
         }
-        boolean isAdmin = currentUser.getBoolean("isAdmin");
 
+        // Animate the profile data, using HTML to make category names bold
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
         TextView nameTextView = findViewById(R.id.displayName);
@@ -168,11 +171,19 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
 
         displayNextMeetingInfo();
 
+        // If user is admin, display admin options
+        boolean isAdmin = currentUser.getBoolean("isAdmin");
         if (isAdmin)
             displayAdminOptions();
     }
 
+    /**
+     * Retrieves and displays information about the next meeting scheduled.
+     */
     public void displayNextMeetingInfo() {
+        if(userIsNull())
+            return;
+
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
         TextView meetingLabel = findViewById(R.id.nextMeetingLabel);
@@ -180,8 +191,11 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         TextView meetingTime = findViewById(R.id.displayNextMeetingTime);
         TextView meetingLocation = findViewById(R.id.displayNextMeetingLocation);
 
+        // Show next meeting up to 5 minutes late (however, user can still sign into meeting as late or as early as the time margin specified on the server-which is also an admin option)
         Date currentDate = new Date();
-        currentDate.setTime(currentDate.getTime() - 5 * MeetingSignInActivity.MILLISECONDS_PER_MINUTE); //Show next meeting up to 5 minutes late
+        currentDate.setTime(currentDate.getTime() - 5 * MeetingSignInActivity.MILLISECONDS_PER_MINUTE);
+
+        // Only display meeting that is open to the user's department
         ParseUser currentUser = ParseUser.getCurrentUser();
         String[] acceptableDepartments = {"General", "general", currentUser.getString("department")};
 
@@ -245,6 +259,9 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         meetingLocation.startAnimation(fadeIn);
     }
 
+    /**
+     * If the user is an admin, display their respective options.
+     */
     public void displayAdminOptions() {
         Animation fadeIn = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_two_seconds);
 
@@ -286,13 +303,18 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         delAllMeetingsButton.startAnimation(fadeIn);
     }
 
+    /**
+     * Turn latitude and longitude pair into an actual address (if it can be done).
+     *
+     * @param latitude  the latitude coordinate to transform
+     * @param longitude the longitude coordinate to transform
+     */
     private void getAddressFromLocation(double latitude, double longitude) {
         TextView meetingLocation = findViewById(R.id.displayNextMeetingLocation);
         Geocoder geocoder = new Geocoder(this, Locale.ENGLISH);
 
         try {
             List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            geocoder.getFromLocation(latitude, longitude, 1);
 
             if (addresses.size() > 0) {
                 Address fetchedAddress = addresses.get(0);
@@ -303,24 +325,32 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
                 meetingLocation.setText(durationSpannedLoc);
 
             } else {
+                // Lat/long pair couldn't be transformed; just display coordinates
                 String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
                 Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
                 meetingLocation.setText(durationSpannedLoc);
             }
 
         } catch (Exception e) {
+            // Lat/long pair couldn't be transformed; just display coordinates
             String locHtml = String.format("<b>Location used for attendance verification:</b> (%.6f,%.6f)", nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
             Spanned durationSpannedLoc = Html.fromHtml(locHtml, Html.FROM_HTML_MODE_LEGACY);
             meetingLocation.setText(durationSpannedLoc);
         }
     }
 
+    /**
+     * Initialize the Google Map.
+     */
     private void initMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
+    /**
+     * Set the location of the map to that of the next meeting.
+     */
     private void setMapLocation() {
         if (nextMeetingLocation != null) {
             LatLng loc = new LatLng(nextMeetingLocation.getLatitude(), nextMeetingLocation.getLongitude());
@@ -329,25 +359,50 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         }
     }
 
+    /**
+     * Set location of map to custom lat/long pair.
+     *
+     * @param latitude the latitude coordinate of the location to center the map on
+     * @param longitude the longitude coordinate of the location to center the map on
+     */
     private void setMapLocation(double latitude, double longitude) {
         LatLng loc = new LatLng(latitude, longitude);
         locMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, DEFAULT_MAP_ZOOM));
         locMap.addMarker(new MarkerOptions().position(loc).title("Meeting Location"));
     }
 
+    /**
+     * Only populate user profile info once map is ready (to prevent null error later).
+     *
+     * @param googleMap the map that's being readied up
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         locMap = googleMap;
         populateUserInfo();
     }
 
+    /**
+     * Log the user out of the app (from the log out button).
+     *
+     * @param view the log out button
+     */
     public void logOut(View view) {
+        if(userIsNull())
+            return;
+
         ParseUser.logOut();
         Toast.makeText(getApplicationContext(), "Come back soon!", Toast.LENGTH_LONG).show();
         finish();
     }
 
+    /**
+     * Log the user out of the app (from the back arrow).
+     */
     public void logOut() {
+        if(userIsNull())
+            return;
+
         ParseUser.logOut();
         Toast.makeText(getApplicationContext(), "Come back soon!", Toast.LENGTH_LONG).show();
         Intent forceLogInScreen = new Intent(this, MainActivity.class);
@@ -356,30 +411,70 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         finish();
     }
 
+    /**
+     * Go to screen to schedule a new meeting.
+     *
+     * @param view schedule meeting button
+     */
     public void scheduleMeeting(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToScheduler = new Intent(this, ScheduleMeetingActivity.class);
         goToScheduler.putExtra("meetingID", "NONE");
         startActivity(goToScheduler);
     }
 
+    /**
+     * Go to screen to sign into an existing meeting.
+     *
+     * @param view meeting sign in button
+     */
     public void signInToMeeting(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToMeetingSignIn = new Intent(this, MeetingSignInActivity.class);
         startActivity(goToMeetingSignIn);
     }
 
+    /**
+     * Go to screen to edit an existing meeting.
+     *
+     * @param view the edit meeting button
+     */
     public void editExistingMeeting(View view) {
+        if(userIsNull())
+            return;
+
         Intent editMeetings = new Intent(this, ViewAllMeetings.class);
         editMeetings.putExtra("purpose", "READ-WRITE");
         startActivity(editMeetings);
     }
 
+    /**
+     * View all users who have an account on the app.
+     *
+     * @param view the view users button
+     */
     public void viewAllUsers(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToUserList = new Intent(this, UserListActivity.class);
         goToUserList.putExtra("purpose", "VIEW_ALL");
         startActivity(goToUserList);
     }
 
+    /**
+     * Deletes all previous meetings from the server.
+     *
+     * @param view the delete previous meetings button
+     */
     public void delAllPreviousMeetings(View view) {
+        if(userIsNull())
+            return;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
         builder.setCancelable(true);
         builder.setTitle("WARNING");
@@ -415,7 +510,15 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         dialog.show();
     }
 
+    /**
+     * Deletes all meetings from the server.
+     *
+     * @param view the delete meetings button
+     */
     public void delAllMeetings(View view) {
+        if(userIsNull())
+            return;
+
         AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
         builder.setCancelable(true);
         builder.setTitle("WARNING");
@@ -450,7 +553,15 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         dialog.show();
     }
 
+    /**
+     * Go to screen to see all past meetings that the current user attended.
+     *
+     * @param view the view past meetings button
+     */
     public void viewPastMeetings(View view) {
+        if(userIsNull())
+            return;
+
         //For some reason, this takes a few moments if the user has attended at least 1 meeting that has been deleted
         Toast.makeText(getApplicationContext(), "Loading... May take a few moments.", Toast.LENGTH_LONG).show();
         ParseUser currentUser = ParseUser.getCurrentUser();
@@ -461,26 +572,72 @@ public class ProfileActivity extends AppCompatActivity implements OnMapReadyCall
         startActivity(displayMeetings);
     }
 
+    /**
+     * Go to screen to view meeting attendance for all meetings in memory.
+     *
+     * @param view the view meeting attendance button
+     */
     public void viewMeetingAttendance(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToMeetingList = new Intent(this, ViewAllMeetings.class);
         goToMeetingList.putExtra("purpose", "READ-VIEW_ATTENDANCE");
         startActivity(goToMeetingList);
     }
 
+    /**
+     * Go to log.
+     *
+     * @param view the view log button
+     */
     public void viewLog(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToLogActivity = new Intent(this, LogActivity.class);
         startActivity(goToLogActivity);
     }
 
+    /**
+     * Go to screen to change the time and location margins for meeting attendance.
+     *
+     * @param view the change margins button
+     */
     public void changeMargins(View view) {
+        if(userIsNull())
+            return;
+
         Intent goToMarginsActivity = new Intent(this, EditMarginsActivity.class);
         startActivity(goToMarginsActivity);
     }
 
+    /**
+     * Refresh the profile screen (in case new meeting was created during current session).
+     */
     private void refreshScreen() {
+        if(userIsNull())
+            return;
+
         finish();
         overridePendingTransition(0, 0);
         startActivity(getIntent());
         overridePendingTransition(0, 0);
+    }
+
+    /**
+     * Check for rare instance when user may be not be logged in but still has access to this screen (this bug may have already been fixed by the time you see this).
+     * If the current user is null, finish() all activities.
+     *
+     * @return whether current user is null
+     */
+    private boolean userIsNull() {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(getApplicationContext(), "The app may have had connection issues. Attempting to shut down app. Please restart the app if this does not work!", Toast.LENGTH_LONG).show();
+            finishAffinity();
+            return true;
+        }
+        return false;
     }
 }

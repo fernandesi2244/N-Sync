@@ -1,38 +1,29 @@
 package com.gmail.fernandesi2244.thunderbirdmeetingtracker;
 
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.FindCallback;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
-public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener{
+public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     private String purpose;
 
@@ -45,18 +36,22 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipeToRefreshViewAllMeetings);
         swipeRefreshLayout.setOnRefreshListener(this);
 
+        // "purpose" defines functionality of this activity
         Intent receivedIntent = getIntent();
         purpose = receivedIntent.getStringExtra("purpose");
 
         switch (purpose) {
             case "READ-WRITE":
+                // For editing existing meetings
                 initializeListWithEditingCapabilities();
                 break;
             case "READ-USER_SPECIFIC":
+                // For seeing meetings that a specific user attended
                 String userId = receivedIntent.getStringExtra("userId");
                 initializeListWithReadingCapabilities(userId);
                 break;
             case "READ-VIEW_ATTENDANCE":
+                // For viewing attendance of a specific meeting
                 initializeListForViewingMeetingAttendance();
                 break;
             default:
@@ -65,6 +60,12 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         }
     }
 
+    /**
+     * Allows user to use the back arrow.
+     *
+     * @param item
+     * @return
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -77,6 +78,9 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         }
     }
 
+    /**
+     * Initialize list of meetings from server so that admin can choose one to edit.
+     */
     private void initializeListWithEditingCapabilities() {
         TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
         activityLabel.setText(R.string.editMeetingsMessage);
@@ -116,6 +120,11 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         }
     }
 
+    /**
+     * Initialize list of meetings that a specific user attended.
+     *
+     * @param userId the ID of the user whose meetings are being requested
+     */
     private void initializeListWithReadingCapabilities(String userId) {
         TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
         activityLabel.setText(R.string.viewMeetingsMessage);
@@ -142,10 +151,11 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
             return;
         }
 
+        // Meetings requested above are actually pointers, not the ParseObjects themselves; therefore, we need to retrieve the actual ParseObjects associated with those pointers.
         List<ParseObject> userMeetings = transform(pointers);
 
+        // Show most recent meetings first (sorted by meeting date in descending order)
         Collections.sort(userMeetings, new Comparator<ParseObject>() {
-
             @Override
             public int compare(ParseObject first, ParseObject second) {
                 if (first.getDate("meetingDate").before(second.getDate("meetingDate")))
@@ -166,12 +176,20 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         }
     }
 
+    /**
+     * Given a list of pointers (that point to Meeting objects), transform them into a list of Meeting ParseObjects.
+     *
+     * @param pointers the list of pointers to transform
+     * @return the transformed list of Meeting ParseObjects
+     */
     private List<ParseObject> transform(List<Object> pointers) {
         List<ParseObject> meetings = new ArrayList<>();
         for (Object current : pointers) {
+            // Downcast to get general ParseObject
             ParseObject obj = (ParseObject) current;
             String id = obj.getObjectId();
 
+            // Find Meeting ParseObject with the retrieved object ID
             ParseQuery<ParseObject> getMeeting = ParseQuery.getQuery("Meeting");
             getMeeting.whereEqualTo("objectId", id);
             try {
@@ -193,6 +211,9 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         return meetings;
     }
 
+    /**
+     * Initialize list of past meetings so that admin can see who attended.
+     */
     private void initializeListForViewingMeetingAttendance() {
         TextView activityLabel = findViewById(R.id.viewMeetingsLabel);
         activityLabel.setText(R.string.viewMeetingAttendanceMessage);
@@ -233,17 +254,30 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
 
     }
 
+    /**
+     * Go to meeting scheduler activity for editing purposes.
+     *
+     * @param meetingID the ID of the Meeting ParseObject to edit
+     */
     private void goToScheduleMeetingActivity(String meetingID) {
         Intent goToScheduler = new Intent(this, ScheduleMeetingActivity.class);
         goToScheduler.putExtra("meetingID", meetingID);
         startActivity(goToScheduler);
     }
 
+    /**
+     * Go back to the profile screen.
+     */
     private void goBackToProfile() {
         Intent goToProfile = new Intent(this, ProfileActivity.class);
         startActivity(goToProfile);
     }
 
+    /**
+     * Pull up the user list screen with the intent of displaying the users who attended a specific meeting.
+     *
+     * @param meetingId the meeting ID to check attendance for
+     */
     private void goToUserListActivity(String meetingId) {
         Intent goToUserList = new Intent(this, UserListActivity.class);
         goToUserList.putExtra("purpose", "VIEW_SPECIFIC");
@@ -251,11 +285,17 @@ public class ViewAllMeetings extends AppCompatActivity implements SwipeRefreshLa
         startActivity(goToUserList);
     }
 
+    /**
+     * Refresh screen part 1
+     */
     @Override
     public void onRefresh() {
         refreshScreen();
     }
 
+    /**
+     * Refresh screen part 2
+     */
     private void refreshScreen() {
         finish();
         overridePendingTransition(0, 0);
