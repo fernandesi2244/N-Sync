@@ -40,6 +40,7 @@ effectively working with Date manipulation and representation in Android
 
 ## What's next for N-Sync
 - Push notifications and emails for new meetings
+- Add support for live feedback from faculty members during meetings
 - ~~Log any errors caught (with their appropriate context) to the online database~~
 - Add logging mechanism specifically for debugging purposes (when the app is in production)
 - ~~Add screen/logic for admins to select a meeting and see who attended it (rather than clicking on a user and seeing what meetings~~
